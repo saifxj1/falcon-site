@@ -103,6 +103,16 @@ textarea.inp{resize:vertical;min-height:90px}
 @keyframes revealFade{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes successPop{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.15)}80%{transform:scale(0.95)}100%{transform:scale(1);opacity:1}}
+@keyframes successRing{0%{transform:scale(0.6);opacity:0}100%{transform:scale(1.6);opacity:0}}
+@keyframes countUp{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(100,200,130,.3),0 0 60px rgba(100,200,130,.1)}50%{box-shadow:0 0 40px rgba(100,200,130,.6),0 0 100px rgba(100,200,130,.2)}}
+
+/* shimmer text */
+.shimmer-text{background:linear-gradient(90deg,rgba(255,255,255,.35) 0%,rgba(255,255,255,.9) 25%,rgba(200,220,255,.95) 50%,rgba(255,255,255,.9) 75%,rgba(255,255,255,.35) 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite}
+.shimmer-word{display:inline;position:relative}
+.shimmer-word::after{content:attr(data-text);position:absolute;left:0;top:0;background:linear-gradient(90deg,transparent 0%,rgba(200,230,255,.9) 50%,transparent 100%);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s ease-in-out infinite;pointer-events:none}
 
 .a1{animation:fadeUp .85s .08s both}.a2{animation:fadeUp .85s .2s both}.a3{animation:fadeUp .85s .34s both}
 .a4{animation:fadeUp .85s .48s both}.a5{animation:fadeUp .85s .62s both}
@@ -259,7 +269,7 @@ const T={
     reviewsLabel:'Reviews',reviewsTitle:'Loved by communities.',reviewsDesc:'Real reviews from real server owners.',reviewsAvg:'reviews',
     leaveReview:'Leave a Review',reviewShare:'Share your experience with the community.',reviewName:'Your name',reviewRole:'Product name (optional)',
     reviewRating:'Rating',reviewText:'Tell us about your experience...',reviewSubmit:'Submit Review →',
-    reviewThanks:'Thank you for your review!',reviewAdded:'Your review has been added.',
+    reviewThanks:'Thank you for your review!',reviewAdded:'Your review has been added.',allReviews:'All Reviews',reviewsPage:'Community Reviews',
     continue:'Continue →',createAcc:'Create account',signIn:'Sign in',signUp:'Sign up',
     cart:'Cart',cartEmpty:'Your cart is empty',browseProductsBtn:'Browse products',total:'Total',checkout:'Checkout',
     orderSummary:'Order summary',secureCheckout:'Secure checkout · Powered by PayPal',payWith:'Pay with PayPal',
@@ -286,7 +296,7 @@ const T={
     reviewsLabel:'التقييمات',reviewsTitle:'يحبّه الجميع.',reviewsDesc:'تقييمات حقيقية من مالكي سيرفرات حقيقيين.',reviewsAvg:'تقييم',
     leaveReview:'اترك تقييمًا',reviewShare:'شارك تجربتك مع المجتمع.',reviewName:'اسمك',reviewRole:'اسم المنتج (اختياري)',
     reviewRating:'التقييم',reviewText:'أخبرنا عن تجربتك...',reviewSubmit:'إرسال التقييم ←',
-    reviewThanks:'شكرًا على تقييمك!',reviewAdded:'تم إضافة تقييمك إلى الصفحة.',
+    reviewThanks:'شكرًا على تقييمك!',reviewAdded:'تم إضافة تقييمك إلى الصفحة.',allReviews:'كل التقييمات',reviewsPage:'تقييمات المجتمع',
     continue:'متابعة ←',createAcc:'إنشاء حساب',signIn:'تسجيل الدخول',signUp:'اشتراك',
     cart:'السلة',cartEmpty:'سلتك فارغة',browseProductsBtn:'تصفح المنتجات',total:'الإجمالي',checkout:'الدفع',
     orderSummary:'ملخص الطلب',secureCheckout:'دفع آمن · مدعوم من PayPal',payWith:'الدفع عبر PayPal',
@@ -463,7 +473,50 @@ function AuthModal({onClose,initTab,onLogin,t}){
     setOk(s);
     onLogin(s);
   };
-  if(ok)return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)',textAlign:'center'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,255,255,.9)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',color:'#000',fontSize:'1.3rem',fontWeight:700}}>✓</div><h2 style={{fontWeight:600,fontSize:'1.2rem',letterSpacing:'-.025em',marginBottom:8}}>Welcome, {ok.name.split(' ')[0]}.</h2><button className="pill-solid" style={{width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem',marginTop:20}} onClick={onClose}>{t.continue}</button></div></div>);
+  const[autoClose,setAutoClose]=useState(false);
+  useEffect(()=>{
+    if(ok){
+      const t1=setTimeout(()=>setAutoClose(true),1800);
+      const t2=setTimeout(()=>onClose(),2200);
+      return()=>{clearTimeout(t1);clearTimeout(t2);}
+    }
+  },[ok]);
+  if(ok)return(
+    <div style={{position:'fixed',inset:0,zIndex:1000,background:'#000',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',animation:'fadeIn .35s both'}}>
+      {/* bg glow */}
+      <div style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none'}}>
+        <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(80,200,120,.08) 0%,transparent 70%)',animation:'glowPulse 2s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:900,height:900,borderRadius:'50%',background:'radial-gradient(circle,rgba(60,160,100,.04) 0%,transparent 70%)'}}/>
+      </div>
+      {/* falcon logo top */}
+      <div style={{position:'absolute',top:36,display:'flex',alignItems:'center',gap:8,opacity:.35}}>
+        <img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:20,height:20,objectFit:'contain'}} alt=""/>
+        <span style={{fontWeight:600,fontSize:'.85rem',letterSpacing:'-.025em'}}>falcon</span>
+      </div>
+      {/* success icon */}
+      <div style={{position:'relative',marginBottom:32}}>
+        {/* ring animation */}
+        <div style={{position:'absolute',inset:-20,borderRadius:'50%',border:'1px solid rgba(100,220,140,.4)',animation:'successRing 1.4s ease-out .1s both'}}/>
+        <div style={{position:'absolute',inset:-8,borderRadius:'50%',border:'0.6px solid rgba(100,220,140,.2)',animation:'successRing 1.4s ease-out .3s both'}}/>
+        {/* circle */}
+        <div style={{width:80,height:80,borderRadius:'50%',background:'linear-gradient(135deg,rgba(80,200,120,.15),rgba(60,160,100,.08))',border:'0.6px solid rgba(100,220,140,.45)',display:'flex',alignItems:'center',justifyContent:'center',animation:'successPop .6s cubic-bezier(.34,1.56,.64,1) .1s both',boxShadow:'0 0 40px rgba(100,220,140,.2),inset 0 0 20px rgba(100,220,140,.05)'}}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(120,230,150,.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation:'successPop .5s cubic-bezier(.34,1.56,.64,1) .35s both'}}>
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+      {/* text */}
+      <div style={{textAlign:'center',animation:'countUp .5s .4s both'}}>
+        <p style={{fontSize:'.7rem',letterSpacing:'.16em',textTransform:'uppercase',color:'rgba(120,220,150,.6)',fontWeight:500,marginBottom:14}}>Account Created</p>
+        <h1 style={{fontWeight:600,fontSize:'clamp(28px,5vw,42px)',letterSpacing:'-.04em',lineHeight:1.1,color:'#fff',marginBottom:10}}>Welcome, {ok.name.split(' ')[0]}.</h1>
+        <p style={{color:'rgba(255,255,255,.3)',fontSize:'.88rem',fontWeight:300}}>You're now part of Falcon.</p>
+      </div>
+      {/* progress bar */}
+      <div style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'rgba(255,255,255,.05)'}}>
+        <div style={{height:'100%',background:'linear-gradient(90deg,rgba(80,200,120,.6),rgba(100,220,150,.9))',animation:'lineGrow 2s linear both',transformOrigin:'left'}}/>
+      </div>
+    </div>
+  );
   return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:26}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:26,height:26,objectFit:'contain'}} alt=""/><span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.03em'}}>falcon</span></div><div style={{display:'flex',gap:22,marginBottom:26}}>{['signup','signin'].map(tp=>(<button key={tp} onClick={()=>{setTab(tp);setErr('')}} className={tab===tp?'tab-on':'tab-off'} style={{background:'none',border:'none',cursor:'pointer',fontWeight:500,fontSize:'.92rem',transition:'all .2s',letterSpacing:'-.015em'}}>{tp==='signup'?t.createAcc:t.signIn}</button>))}</div><div style={{display:'flex',flexDirection:'column',gap:10}}>{tab==='signup'&&<input className="inp" placeholder={t.reviewName} value={nm} onChange={e=>setNm(e.target.value)} autoFocus/>}<input className="inp" type="email" placeholder="Email" value={em} onChange={e=>setEm(e.target.value)} autoFocus={tab==='signin'}/><input className="inp" type="password" placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(tab==='signup'?reg():signin())}/>{err&&<p style={{color:'rgba(255,80,80,.85)',fontSize:'.78rem'}}>↳ {err}</p>}<button className="pill-solid" style={{marginTop:6,width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem'}} onClick={tab==='signup'?reg:signin}>{tab==='signup'?t.createAcc:t.signIn}</button></div></div></div>);
 }
 
@@ -571,18 +624,32 @@ const JSONBIN_CONFIG = {
   apiKey: 'YOUR_API_KEY',  // مثال: $2a$10$...
 };
 
+/* ── localStorage always-on backup ── */
+function loadLocalReviews(){try{return JSON.parse(localStorage.getItem('fcn_reviews_v2')||'[]');}catch{return[];}}
+function saveLocalReviews(arr){try{localStorage.setItem('fcn_reviews_v2',JSON.stringify(arr));}catch{}}
+
+/* ── merge by id, deduplicate ── */
+function mergeReviews(a,b){const seen=new Set();return [...a,...b].filter(r=>{if(seen.has(r.id))return false;seen.add(r.id);return true;});}
+
 async function fetchSharedReviews(){
-  if(JSONBIN_CONFIG.binId==='YOUR_BIN_ID') return [];
+  const local=loadLocalReviews();
+  if(JSONBIN_CONFIG.binId==='YOUR_BIN_ID') return local;
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`,{
       headers:{'X-Master-Key':JSONBIN_CONFIG.apiKey,'X-Bin-Meta':'false'}
     });
     const d=await r.json();
-    return Array.isArray(d.reviews)?d.reviews:[];
-  }catch(e){ return []; }
+    const remote=Array.isArray(d.reviews)?d.reviews:[];
+    const merged=mergeReviews(local,remote);
+    /* sync back if local has newer items */
+    if(merged.length>remote.length) pushSharedReview(merged).catch(()=>{});
+    saveLocalReviews(merged);
+    return merged;
+  }catch(e){ return local; }
 }
 
 async function pushSharedReview(reviews){
+  saveLocalReviews(reviews); /* always save locally first */
   if(JSONBIN_CONFIG.binId==='YOUR_BIN_ID') return;
   try{
     await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}`,{
@@ -590,28 +657,128 @@ async function pushSharedReview(reviews){
       headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_CONFIG.apiKey},
       body:JSON.stringify({reviews})
     });
-  }catch(e){}
+  }catch(e){ /* local already saved, silent fail */ }
 }
 
-function Feedback({t}){
-  const[sharedReviews,setSharedReviews]=useState([]);
+function ReviewCard({r}){
+  return(
+    <div className="rcard">
+      <div style={{marginBottom:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <Stars n={r.stars} sz={11}/>
+        {r.id.startsWith('u_')&&<span style={{fontSize:'.65rem',color:'rgba(100,150,255,.7)',border:'0.6px solid rgba(60,100,255,.3)',borderRadius:100,padding:'2px 8px',fontWeight:500}}>New</span>}
+      </div>
+      <p style={{fontSize:'.84rem',lineHeight:1.78,color:'rgba(255,255,255,.6)',fontWeight:300,marginBottom:18}}>"{r.text}"</p>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:30,height:30,borderRadius:'50%',background:'rgba(255,255,255,.06)',border:'0.6px solid rgba(255,255,255,.09)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:600,flexShrink:0}}>{r.av}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <p style={{fontWeight:500,fontSize:'.8rem',letterSpacing:'-.015em',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.name}</p>
+          <p style={{color:'rgba(100,150,255,.6)',fontSize:'.72rem',marginTop:1,fontWeight:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.role||'Falcon User'}</p>
+        </div>
+        <span style={{fontSize:'.7rem',color:'rgba(255,255,255,.2)',fontWeight:300,flexShrink:0}}>{r.date}</span>
+      </div>
+    </div>
+  );
+}
+
+function AllReviewsPage({setPage,t,reviews,onAddReview}){
+  const l=t===T.ar?'ar':'en';
+  const avg=reviews.length?(reviews.reduce((s,r)=>s+r.stars,0)/reviews.length).toFixed(1):'5.0';
+  return(
+    <div style={{position:'relative',minHeight:'100vh',background:'#000',overflow:'hidden',paddingTop:70}}>
+      <PageVideoBg/><AnimatedOrbs/><GridLines/><Particles count={14} color="rgba(80,130,255,.4)"/>
+      <div style={{position:'relative',zIndex:10,maxWidth:1100,margin:'0 auto',padding:'80px 40px 100px'}}>
+        <button onClick={()=>setPage('home')} style={{background:'none',border:'none',color:'rgba(255,255,255,.3)',cursor:'pointer',fontFamily:'inherit',fontSize:'.78rem',display:'flex',alignItems:'center',gap:6,marginBottom:48,transition:'color .2s',letterSpacing:'.06em',textTransform:'uppercase',padding:0}} onMouseOver={e=>e.currentTarget.style.color='rgba(255,255,255,.7)'} onMouseOut={e=>e.currentTarget.style.color='rgba(255,255,255,.3)'}>← Back</button>
+        <div style={{marginBottom:52}}>
+          <span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.reviewsLabel}</span>
+          <h1 style={{fontWeight:600,fontSize:'clamp(36px,6vw,64px)',letterSpacing:'-.045em',lineHeight:.98,marginBottom:16,marginTop:10,background:'linear-gradient(155deg,#fff 30%,rgba(100,150,255,.75) 75%,rgba(30,80,220,.5) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'revealUp .9s .1s both'}}>{t.reviewsPage||'All Reviews'}</h1>
+          <div style={{display:'inline-flex',alignItems:'center',gap:12,border:'0.6px solid rgba(255,255,255,.08)',borderRadius:100,padding:'9px 20px',background:'rgba(0,0,0,.4)',backdropFilter:'blur(8px)',animation:'revealUp .9s .2s both'}}>
+            <Stars n={5} sz={11}/><span style={{width:'0.6px',height:14,background:'rgba(255,255,255,.1)',display:'inline-block'}}/><span style={{fontSize:'.8rem',color:'rgba(255,255,255,.5)',fontWeight:400}}>{avg} · {reviews.length} {t.reviewsAvg}</span>
+          </div>
+        </div>
+        <div style={{height:'0.6px',background:'linear-gradient(90deg,rgba(60,100,255,.5),rgba(255,255,255,.1),transparent)',marginBottom:44,animation:'lineGrow .8s .3s both',transformOrigin:'left'}}/>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:14,animation:'revealUp .9s .3s both'}}>
+          {reviews.map(r=><ReviewCard key={r.id} r={r}/>)}
+        </div>
+        <div style={{maxWidth:600,margin:'56px auto 0',animation:'revealUp .9s .5s both'}}>
+          <ReviewForm onSubmit={onAddReview} t={t}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Feedback({t,setPage,onReviewsReady}){
+  const[sharedReviews,setSharedReviews]=useState(()=>loadLocalReviews());
   const[loading,setLoading]=useState(true);
   useEffect(()=>{
-    fetchSharedReviews().then(r=>{setSharedReviews(r);setLoading(false);});
+    fetchSharedReviews().then(r=>{setSharedReviews(r);setLoading(false);if(onReviewsReady)onReviewsReady(r);});
   },[]);
   const allReviews=[...SEED_REVIEWS,...sharedReviews];
   const addReview=useCallback(async r=>{
     const updated=[...sharedReviews,r];
     setSharedReviews(updated);
+    if(onReviewsReady)onReviewsReady(updated);
     await pushSharedReview(updated);
-  },[sharedReviews]);
+  },[sharedReviews,onReviewsReady]);
   const avg=allReviews.length?(allReviews.reduce((s,r)=>s+r.stars,0)/allReviews.length).toFixed(1):'5.0';
-  return(<section style={{padding:'130px 40px 100px',borderTop:'0.6px solid rgba(255,255,255,.06)',position:'relative',overflow:'hidden',background:'#000'}}><div style={{position:'absolute',inset:0,overflow:'hidden',zIndex:0}}><HLSVideo src="https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:.16}}/><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.72)'}}/><div style={{position:'absolute',top:0,left:0,right:0,height:160,background:'linear-gradient(#000,transparent)'}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:160,background:'linear-gradient(transparent,#000)'}}/></div><Particles count={12} color="rgba(80,130,255,.4)"/><div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.reviewsLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(26px,4vw,48px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.reviewsTitle}</h2><p style={{color:'rgba(255,255,255,.38)',fontSize:'.9rem',maxWidth:320,margin:'0 auto',lineHeight:1.8,fontWeight:300}}>{t.reviewsDesc}</p><div style={{display:'inline-flex',alignItems:'center',gap:12,marginTop:22,border:'0.6px solid rgba(255,255,255,.08)',borderRadius:100,padding:'9px 20px',background:'rgba(0,0,0,.4)',backdropFilter:'blur(8px)'}}><Stars n={5} sz={11}/><span style={{width:'0.6px',height:14,background:'rgba(255,255,255,.1)',display:'inline-block'}}/><span style={{fontSize:'.8rem',color:'rgba(255,255,255,.5)',fontWeight:400}}>{avg} · {allReviews.length} {t.reviewsAvg}</span></div></div>{loading?(<div style={{textAlign:'center',padding:'40px 0',position:'relative',zIndex:3}}><div style={{width:28,height:28,border:'2px solid rgba(255,255,255,.08)',borderTop:'2px solid rgba(100,150,255,.6)',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto'}}></div></div>):(<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:14,maxWidth:1020,margin:'0 auto',position:'relative',zIndex:3}}>{allReviews.map(r=>(<div key={r.id} className="rcard"><div style={{marginBottom:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}><Stars n={r.stars} sz={11}/>{r.id.startsWith('u_')&&<span style={{fontSize:'.65rem',color:'rgba(100,150,255,.7)',border:'0.6px solid rgba(60,100,255,.3)',borderRadius:100,padding:'2px 8px',fontWeight:500}}>New</span>}</div><p style={{fontSize:'.84rem',lineHeight:1.78,color:'rgba(255,255,255,.6)',fontWeight:300,marginBottom:18}}>"{r.text}"</p><div style={{display:'flex',alignItems:'center',gap:10}}><div style={{width:30,height:30,borderRadius:'50%',background:'rgba(255,255,255,.06)',border:'0.6px solid rgba(255,255,255,.09)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:600,flexShrink:0}}>{r.av}</div><div style={{flex:1,minWidth:0}}><p style={{fontWeight:500,fontSize:'.8rem',letterSpacing:'-.015em',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.name}</p><p style={{color:'rgba(100,150,255,.6)',fontSize:'.72rem',marginTop:1,fontWeight:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.role||'Falcon User'}</p></div><span style={{fontSize:'.7rem',color:'rgba(255,255,255,.2)',fontWeight:300,flexShrink:0}}>{r.date}</span></div></div>))}</div>)}<div style={{maxWidth:600,margin:'44px auto 0',position:'relative',zIndex:3}}><ReviewForm onSubmit={addReview} t={t}/></div></section>);
+  const PREVIEW_COUNT=10;
+  const showMore=allReviews.length>PREVIEW_COUNT;
+  const displayedReviews=showMore?allReviews.slice(0,PREVIEW_COUNT):allReviews;
+  return(
+    <section style={{padding:'130px 40px 100px',borderTop:'0.6px solid rgba(255,255,255,.06)',position:'relative',overflow:'hidden',background:'#000'}}>
+      <div style={{position:'absolute',inset:0,overflow:'hidden',zIndex:0}}>
+        <HLSVideo src="https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:.16}}/>
+        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.72)'}}/>
+        <div style={{position:'absolute',top:0,left:0,right:0,height:160,background:'linear-gradient(#000,transparent)'}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,height:160,background:'linear-gradient(transparent,#000)'}}/>
+      </div>
+      <Particles count={12} color="rgba(80,130,255,.4)"/>
+      <div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}>
+        <span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.reviewsLabel}</span>
+        <h2 style={{fontWeight:600,fontSize:'clamp(26px,4vw,48px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.reviewsTitle}</h2>
+        <p style={{color:'rgba(255,255,255,.38)',fontSize:'.9rem',maxWidth:320,margin:'0 auto',lineHeight:1.8,fontWeight:300}}>{t.reviewsDesc}</p>
+        <div style={{display:'inline-flex',alignItems:'center',gap:12,marginTop:22,border:'0.6px solid rgba(255,255,255,.08)',borderRadius:100,padding:'9px 20px',background:'rgba(0,0,0,.4)',backdropFilter:'blur(8px)'}}>
+          <Stars n={5} sz={11}/><span style={{width:'0.6px',height:14,background:'rgba(255,255,255,.1)',display:'inline-block'}}/><span style={{fontSize:'.8rem',color:'rgba(255,255,255,.5)',fontWeight:400}}>{avg} · {allReviews.length} {t.reviewsAvg}</span>
+        </div>
+      </div>
+      {loading?(
+        <div style={{textAlign:'center',padding:'40px 0',position:'relative',zIndex:3}}>
+          <div style={{width:28,height:28,border:'2px solid rgba(255,255,255,.08)',borderTop:'2px solid rgba(100,150,255,.6)',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto'}}></div>
+        </div>
+      ):(
+        <div style={{maxWidth:1020,margin:'0 auto',position:'relative',zIndex:3}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:14}}>
+            {displayedReviews.map(r=><ReviewCard key={r.id} r={r}/>)}
+          </div>
+          {showMore&&(
+            <div style={{textAlign:'center',marginTop:32}}>
+              <button className="pill-ghost" style={{fontSize:'.85rem',padding:'11px 28px',gap:8}} onClick={()=>setPage('reviews')}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                {t.allReviews||'All Reviews'} — {allReviews.length}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      <div style={{maxWidth:600,margin:'44px auto 0',position:'relative',zIndex:3}}>
+        <ReviewForm onSubmit={addReview} t={t}/>
+      </div>
+    </section>
+  );
 }
 /* ══ HOME PAGE ══ */
-function HomePage({t,onAuth,onAdd,onBuy}){
+function HomePage({t,onAuth,onAdd,onBuy,setPage,onReviewsReady}){
   const l=t===T.ar?'ar':'en';
-  return(<div><section style={{position:'relative',overflow:'hidden',minHeight:'100vh',background:'#000',paddingTop:70}}><VideoBg/><AnimatedOrbs/><GridLines/><Particles count={22} color="rgba(70,130,255,.5)"/><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.42)',zIndex:3}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:200,background:'linear-gradient(transparent,#000)',zIndex:4}}/><div style={{position:'relative',zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:'14vh',paddingBottom:'14vh',paddingLeft:24,paddingRight:24,textAlign:'center'}}><p className="a1" style={{fontStyle:t===T.en?'italic':'normal',fontWeight:300,fontSize:'clamp(16px,2.5vw,24px)',lineHeight:1.4,color:'rgba(255,255,255,.5)',marginBottom:6,maxWidth:600}}>{t.heroSub}</p><p className="a1" style={{fontSize:'.72rem',color:'rgba(255,255,255,.22)',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400,marginBottom:26}}>{t.heroWelcome}</p><h1 className="a2" style={{fontWeight:600,fontSize:'clamp(56px,13vw,118px)',lineHeight:.98,letterSpacing:'-.045em',background:'linear-gradient(155deg,#fff 25%,rgba(160,200,255,.85) 60%,rgba(60,110,255,.55) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Falcon</h1><p className="a3" style={{fontSize:'.92rem',lineHeight:1.85,maxWidth:400,marginTop:18,color:'rgba(255,255,255,.42)',fontWeight:300}}>{t.heroDesc}</p><div className="a4 hero-btns" style={{display:'flex',alignItems:'center',gap:10,marginTop:34,flexWrap:'wrap',justifyContent:'center'}}><button className="pill-ghost" onClick={()=>document.getElementById('products').scrollIntoView({behavior:'smooth'})}>{t.browseProducts}</button><button className="pill-discord" onClick={()=>window.open('https://discord.gg/fcn','_blank')}><DiscordSvg/>{t.discord}</button><button className="pill-ghost" style={{gap:8}} onClick={()=>window.open('https://www.youtube.com/@Falconofficial123/videos','_blank')}><YoutubeSvg/>{t.youtube}</button></div><div className="a5" style={{marginTop:48,display:'flex',flexDirection:'column',alignItems:'center',gap:6,opacity:.22}}><span style={{fontSize:'.66rem',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400}}>{t.scroll}</span><div style={{width:.6,height:28,background:'linear-gradient(180deg,rgba(255,255,255,.7),transparent)',animation:'floatY 2s ease-in-out infinite'}}/></div></div></section><div style={{padding:'40px 40px',borderTop:'0.6px solid rgba(255,255,255,.06)',borderBottom:'0.6px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:32,maxWidth:900,margin:'0 auto'}}><span style={{flexShrink:0,fontSize:'.7rem',color:'rgba(255,255,255,.18)',letterSpacing:'.08em',textTransform:'uppercase',fontWeight:400,whiteSpace:'nowrap'}}>{t.trustedBy}</span><Marquee/></div><BotsSection t={t} onAdd={onAdd} onBuy={onBuy}/><AppsSection t={t} onAdd={onAdd} onBuy={onBuy}/><DiscordSection t={t} onAdd={onAdd} onBuy={onBuy}/><FAQSection t={t}/><Feedback t={t}/></div>);
+  return(<div><section style={{position:'relative',overflow:'hidden',minHeight:'100vh',background:'#000',paddingTop:70}}><VideoBg/><AnimatedOrbs/><GridLines/><Particles count={22} color="rgba(70,130,255,.5)"/><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.42)',zIndex:3}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:200,background:'linear-gradient(transparent,#000)',zIndex:4}}/><div style={{position:'relative',zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:'14vh',paddingBottom:'14vh',paddingLeft:24,paddingRight:24,textAlign:'center'}}><p className="a1" style={{fontStyle:t===T.en?'italic':'normal',fontWeight:300,fontSize:'clamp(16px,2.5vw,24px)',lineHeight:1.4,marginBottom:6,maxWidth:600,position:'relative'}}>
+  {t===T.en?(
+    <span style={{display:'inline-block',position:'relative'}}>
+      <span style={{background:'linear-gradient(90deg,rgba(255,255,255,.28) 0%,rgba(200,220,255,.95) 30%,rgba(255,255,255,.98) 50%,rgba(200,220,255,.95) 70%,rgba(255,255,255,.28) 100%)',backgroundSize:'300% auto',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'shimmer 5s ease-in-out infinite',filter:'drop-shadow(0 0 12px rgba(150,200,255,.25))'}}>In the sky, quality is the only language.</span>
+      <span style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent 20%,rgba(180,220,255,.18) 50%,transparent 80%)',backgroundSize:'200% auto',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'shimmer 3s ease-in-out .5s infinite',pointerEvents:'none'}}>{'                                              '}</span>
+    </span>
+  ):(
+    <span style={{background:'linear-gradient(90deg,rgba(255,255,255,.28) 0%,rgba(200,220,255,.95) 30%,rgba(255,255,255,.98) 50%,rgba(200,220,255,.95) 70%,rgba(255,255,255,.28) 100%)',backgroundSize:'300% auto',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'shimmer 5s ease-in-out infinite'}}>{t.heroSub}</span>
+  )}
+</p><p className="a1" style={{fontSize:'.72rem',color:'rgba(255,255,255,.22)',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400,marginBottom:26}}>{t.heroWelcome}</p><h1 className="a2" style={{fontWeight:600,fontSize:'clamp(56px,13vw,118px)',lineHeight:.98,letterSpacing:'-.045em',background:'linear-gradient(155deg,#fff 25%,rgba(160,200,255,.85) 60%,rgba(60,110,255,.55) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Falcon</h1><p className="a3" style={{fontSize:'.92rem',lineHeight:1.85,maxWidth:400,marginTop:18,color:'rgba(255,255,255,.42)',fontWeight:300}}>{t.heroDesc}</p><div className="a4 hero-btns" style={{display:'flex',alignItems:'center',gap:10,marginTop:34,flexWrap:'wrap',justifyContent:'center'}}><button className="pill-ghost" onClick={()=>document.getElementById('products').scrollIntoView({behavior:'smooth'})}>{t.browseProducts}</button><button className="pill-discord" onClick={()=>window.open('https://discord.gg/fcn','_blank')}><DiscordSvg/>{t.discord}</button><button className="pill-ghost" style={{gap:8}} onClick={()=>window.open('https://www.youtube.com/@Falconofficial123/videos','_blank')}><YoutubeSvg/>{t.youtube}</button></div><div className="a5" style={{marginTop:48,display:'flex',flexDirection:'column',alignItems:'center',gap:6,opacity:.22}}><span style={{fontSize:'.66rem',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400}}>{t.scroll}</span><div style={{width:.6,height:28,background:'linear-gradient(180deg,rgba(255,255,255,.7),transparent)',animation:'floatY 2s ease-in-out infinite'}}/></div></div></section><div style={{padding:'40px 40px',borderTop:'0.6px solid rgba(255,255,255,.06)',borderBottom:'0.6px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:32,maxWidth:900,margin:'0 auto'}}><span style={{flexShrink:0,fontSize:'.7rem',color:'rgba(255,255,255,.18)',letterSpacing:'.08em',textTransform:'uppercase',fontWeight:400,whiteSpace:'nowrap'}}>{t.trustedBy}</span><Marquee/></div><BotsSection t={t} onAdd={onAdd} onBuy={onBuy}/><AppsSection t={t} onAdd={onAdd} onBuy={onBuy}/><DiscordSection t={t} onAdd={onAdd} onBuy={onBuy}/><FAQSection t={t}/><Feedback t={t} setPage={setPage} onReviewsReady={onReviewsReady}/></div>);
 }
 
 /* ══ ABOUT / TERMS PAGES ══ */
@@ -652,6 +819,7 @@ function App(){
   const[cart,setCart]=useState([]);
   const[cartOpen,setCartOpen]=useState(false);
   const[checkout,setCheckout]=useState(null);
+  const[allUserReviews,setAllUserReviews]=useState(()=>loadLocalReviews());
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'})},[page]);
   const openAuth=tp=>{setAuthTab(tp);setAuth(true)};
   const add=p=>{setCart(c=>{const e=c.find(i=>i.id===p.id);return e?c.map(i=>i.id===p.id?{...i,qty:i.qty+1}:i):[...c,{...p,qty:1}]});setCartOpen(true)};
@@ -659,7 +827,26 @@ function App(){
   const rem=id=>setCart(c=>c.filter(i=>i.id!==id));
   const cn=cart.reduce((s,i)=>s+i.qty,0);
   const ct=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  return(<div style={{minHeight:'100vh',background:'#000',direction:t.dir}}><Navbar onAuth={openAuth} user={user} n={cn} onCart={()=>setCartOpen(true)} page={page} setPage={setPage} lang={lang} setLang={setLang} t={t}/>{page==='home'&&<HomePage t={t} onAuth={openAuth} onAdd={add} onBuy={p=>setCheckout({type:'product',product:p})}/>}{page==='about'&&<AboutPage setPage={setPage} t={t}/>}{page==='terms'&&<TermsPage setPage={setPage} t={t}/>}{page==='home'&&<Footer setPage={setPage} t={t}/>}{(page==='about'||page==='terms')&&(<div style={{borderTop:'0.6px solid rgba(255,255,255,.05)',padding:'20px 40px',textAlign:'center',zIndex:10,background:'#000'}}><p style={{color:'rgba(255,255,255,.12)',fontSize:'.72rem',fontWeight:300}}>© 2026 Falcon by Mythic. All rights reserved.</p></div>)}{auth&&<AuthModal onClose={()=>setAuth(false)} initTab={authTab} onLogin={u=>{setUser(u);setAuth(false)}} t={t}/>}{cartOpen&&<CartDrawer cart={cart} onClose={()=>setCartOpen(false)} onQty={qty} onRemove={rem} onCheckout={()=>{setCartOpen(false);setCheckout({type:'cart'})}} t={t}/>}{checkout&&<Checkout items={cart} total={ct} product={checkout.type==='product'?checkout.product:null} onClose={()=>setCheckout(null)} t={t}/>}</div>);
+  const allReviewsCombined=[...SEED_REVIEWS,...allUserReviews];
+  const handleAddReviewFromAllPage=useCallback(async r=>{
+    const updated=[...allUserReviews,r];
+    setAllUserReviews(updated);
+    await pushSharedReview(updated);
+  },[allUserReviews]);
+  return(
+    <div style={{minHeight:'100vh',background:'#000',direction:t.dir}}>
+      <Navbar onAuth={openAuth} user={user} n={cn} onCart={()=>setCartOpen(true)} page={page} setPage={setPage} lang={lang} setLang={setLang} t={t}/>
+      {page==='home'&&<HomePage t={t} onAuth={openAuth} onAdd={add} onBuy={p=>setCheckout({type:'product',product:p})} setPage={setPage} onReviewsReady={setAllUserReviews}/>}
+      {page==='about'&&<AboutPage setPage={setPage} t={t}/>}
+      {page==='terms'&&<TermsPage setPage={setPage} t={t}/>}
+      {page==='reviews'&&<AllReviewsPage setPage={setPage} t={t} reviews={allReviewsCombined} onAddReview={handleAddReviewFromAllPage}/>}
+      {(page==='home')&&<Footer setPage={setPage} t={t}/>}
+      {(page==='about'||page==='terms'||page==='reviews')&&(<div style={{borderTop:'0.6px solid rgba(255,255,255,.05)',padding:'20px 40px',textAlign:'center',zIndex:10,background:'#000'}}><p style={{color:'rgba(255,255,255,.12)',fontSize:'.72rem',fontWeight:300}}>© 2026 Falcon by Mythic. All rights reserved.</p></div>)}
+      {auth&&<AuthModal onClose={()=>setAuth(false)} initTab={authTab} onLogin={u=>{setUser(u);setAuth(false)}} t={t}/>}
+      {cartOpen&&<CartDrawer cart={cart} onClose={()=>setCartOpen(false)} onQty={qty} onRemove={rem} onCheckout={()=>{setCartOpen(false);setCheckout({type:'cart'})}} t={t}/>}
+      {checkout&&<Checkout items={cart} total={ct} product={checkout.type==='product'?checkout.product:null} onClose={()=>setCheckout(null)} t={t}/>}
+    </div>
+  );
 }
 ReactDOM.render(<App/>,document.getElementById('root'));
 </script>
