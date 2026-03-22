@@ -10,6 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="preconnect" href="https://api.fontshare.com"/>
@@ -146,6 +147,54 @@ const {useState,useEffect,useRef,useCallback,useMemo}=React;
 
 /* ── EMAILJS ── */
 const EMAILJS_CONFIG={publicKey:'YOUR_PUBLIC_KEY',serviceId:'YOUR_SERVICE_ID',templateId:'YOUR_TEMPLATE_ID'};
+
+/* ══════════════════════════════════════════════
+   GOOGLE OAUTH CONFIG
+   1. روح https://console.cloud.google.com
+   2. New Project → APIs & Services → Credentials
+   3. Create OAuth 2.0 Client ID → Web application
+   4. Authorized JS origins: حط رابط موقعك (أو http://localhost للتجربة)
+   5. انسخ الـ Client ID وحطه هنا
+══════════════════════════════════════════════ */
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+/* ── JWT decoder (for Google credential) ── */
+function decodeJWT(token){
+  try{
+    const base64=token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const json=decodeURIComponent(atob(base64).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    return JSON.parse(json);
+  }catch{return null;}
+}
+
+/* ── Handle Google Sign-In response ── */
+function handleGoogleLogin(credential, onLogin, sendWelcome){
+  const payload=decodeJWT(credential);
+  if(!payload)return{ok:false,err:'Google login failed'};
+  const{name,email,sub:googleId,picture}=payload;
+  // Check if user exists, if not register them
+  const db=FalconDB._read();
+  let user=db.users.find(u=>u.email===email);
+  let isNew=false;
+  if(!user){
+    const result=FalconDB.register({name,email,password:'__google__'+googleId});
+    if(!result.ok)return{ok:false,err:result.err};
+    user=result.user;
+    user.googleId=googleId;
+    user.avatar=picture||null;
+    user.authProvider='google';
+    FalconDB._write(db);
+    isNew=true;
+  } else {
+    user.lastLogin=FalconDB._now();
+    if(!user.googleId){user.googleId=googleId;user.authProvider='google';}
+    FalconDB._write(db);
+  }
+  const s={name:user.name,em:email,id:user.id,avatar:picture||null,provider:'google'};
+  localStorage.setItem('fcn_s',JSON.stringify(s));
+  if(isNew&&sendWelcome)sendWelcomeEmail(name,email);
+  return{ok:true,session:s,isNew};
+}
 
 /* ── FALCONDB ── */
 const FalconDB={
@@ -376,8 +425,46 @@ function AuthModal({onClose,initTab,onLogin,t}){
   const[tab,setTab]=useState(initTab||'signup');
   const[nm,setNm]=useState('');const[em,setEm]=useState('');const[pw,setPw]=useState('');
   const[err,setErr]=useState('');const[ok,setOk]=useState(null);
+  const[gLoading,setGLoading]=useState(false);
+  const googleBtnRef=useRef(null);
+
   const reg=async()=>{setErr('');if(!nm.trim())return setErr('Name required');if(!em.includes('@'))return setErr('Valid email required');if(pw.length<6)return setErr('Password 6+ chars');const result=FalconDB.register({name:nm,email:em,password:pw});if(!result.ok)return setErr(result.err);const s={name:nm,em,id:result.user.id};localStorage.setItem('fcn_s',JSON.stringify(s));sendWelcomeEmail(nm,em);setOk(s);onLogin(s);};
   const signin=()=>{setErr('');if(!em.includes('@'))return setErr('Valid email required');if(!pw)return setErr('Password required');const result=FalconDB.login({email:em,password:pw});if(!result.ok)return setErr(result.err);const s={name:result.user.name,em,id:result.user.id};localStorage.setItem('fcn_s',JSON.stringify(s));setOk(s);onLogin(s);};
+
+  /* ── Google One Tap init ── */
+  useEffect(()=>{
+    if(ok||GOOGLE_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com')return;
+    const interval=setInterval(()=>{
+      if(window.google&&window.google.accounts){
+        clearInterval(interval);
+        window.google.accounts.id.initialize({
+          client_id:GOOGLE_CLIENT_ID,
+          callback:(res)=>{
+            setGLoading(true);
+            const result=handleGoogleLogin(res.credential,onLogin,true);
+            setGLoading(false);
+            if(!result.ok){setErr(result.err||'Google sign-in failed');return;}
+            setOk(result.session);
+            onLogin(result.session);
+          },
+          auto_select:false,
+        });
+        /* render button into ref */
+        if(googleBtnRef.current){
+          window.google.accounts.id.renderButton(googleBtnRef.current,{
+            theme:'outline',
+            size:'large',
+            width:googleBtnRef.current.offsetWidth||340,
+            shape:'pill',
+            text:tab==='signup'?'signup_with':'signin_with',
+            logo_alignment:'left',
+          });
+        }
+      }
+    },200);
+    return()=>clearInterval(interval);
+  },[ok,tab]);
+
   const[autoClose,setAutoClose]=useState(false);
   useEffect(()=>{if(ok){const t1=setTimeout(()=>setAutoClose(true),1800);const t2=setTimeout(()=>onClose(),2200);return()=>{clearTimeout(t1);clearTimeout(t2);}}},[ok]);
   if(ok)return(
@@ -406,7 +493,49 @@ function AuthModal({onClose,initTab,onLogin,t}){
       </div>
     </div>
   );
-  return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:26}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:26,height:26,objectFit:'contain'}} alt=""/><span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.03em'}}>falcon</span></div><div style={{display:'flex',gap:22,marginBottom:26}}>{['signup','signin'].map(tp=>(<button key={tp} onClick={()=>{setTab(tp);setErr('')}} className={tab===tp?'tab-on':'tab-off'} style={{background:'none',border:'none',cursor:'pointer',fontWeight:500,fontSize:'.92rem',transition:'all .2s',letterSpacing:'-.015em'}}>{tp==='signup'?t.createAcc:t.signIn}</button>))}</div><div style={{display:'flex',flexDirection:'column',gap:10}}>{tab==='signup'&&<input className="inp" placeholder={t.reviewName} value={nm} onChange={e=>setNm(e.target.value)} autoFocus/>}<input className="inp" type="email" placeholder="Email" value={em} onChange={e=>setEm(e.target.value)} autoFocus={tab==='signin'}/><input className="inp" type="password" placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(tab==='signup'?reg():signin())}/>{err&&<p style={{color:'rgba(255,80,80,.85)',fontSize:'.78rem'}}>↳ {err}</p>}<button className="pill-solid" style={{marginTop:6,width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem'}} onClick={tab==='signup'?reg:signin}>{tab==='signup'?t.createAcc:t.signIn}</button></div></div></div>);
+  return(
+    <div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}>
+      <div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>✕</button>
+        {/* Logo */}
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:22}}>
+          <img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:26,height:26,objectFit:'contain'}} alt=""/>
+          <span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.03em'}}>falcon</span>
+        </div>
+        {/* Tabs */}
+        <div style={{display:'flex',gap:22,marginBottom:22}}>
+          {['signup','signin'].map(tp=>(<button key={tp} onClick={()=>{setTab(tp);setErr('')}} className={tab===tp?'tab-on':'tab-off'} style={{background:'none',border:'none',cursor:'pointer',fontWeight:500,fontSize:'.92rem',transition:'all .2s',letterSpacing:'-.015em'}}>{tp==='signup'?t.createAcc:t.signIn}</button>))}
+        </div>
+        {/* GOOGLE BUTTON */}
+        {GOOGLE_CLIENT_ID!=='YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'?(
+          <div style={{marginBottom:16}}>
+            <div ref={googleBtnRef} style={{width:'100%',display:'flex',justifyContent:'center',minHeight:44}}/>
+            {gLoading&&<p style={{textAlign:'center',color:'rgba(255,255,255,.4)',fontSize:'.78rem',marginTop:8}}>Signing in with Google...</p>}
+          </div>
+        ):(
+          /* Placeholder Google button when Client ID not configured */
+          <button style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:10,background:'#fff',border:'0.6px solid rgba(0,0,0,.12)',borderRadius:100,padding:'11px 16px',cursor:'pointer',marginBottom:16,transition:'box-shadow .2s',fontFamily:'inherit',fontSize:'.88rem',fontWeight:500,color:'#3c4043'}} onMouseOver={e=>e.currentTarget.style.boxShadow='0 2px 12px rgba(0,0,0,.15)'} onMouseOut={e=>e.currentTarget.style.boxShadow='none'} onClick={()=>alert('⚙️ Add your Google Client ID in GOOGLE_CLIENT_ID to enable this.')}>
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continue with Google
+          </button>
+        )}
+        {/* Divider */}
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+          <div style={{flex:1,height:'0.6px',background:'rgba(255,255,255,.08)'}}/>
+          <span style={{fontSize:'.72rem',color:'rgba(255,255,255,.22)',fontWeight:400,whiteSpace:'nowrap'}}>or continue with email</span>
+          <div style={{flex:1,height:'0.6px',background:'rgba(255,255,255,.08)'}}/>
+        </div>
+        {/* Email/Password form */}
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {tab==='signup'&&<input className="inp" placeholder={t.reviewName} value={nm} onChange={e=>setNm(e.target.value)} autoFocus/>}
+          <input className="inp" type="email" placeholder="Email" value={em} onChange={e=>setEm(e.target.value)} autoFocus={tab==='signin'}/>
+          <input className="inp" type="password" placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(tab==='signup'?reg():signin())}/>
+          {err&&<p style={{color:'rgba(255,80,80,.85)',fontSize:'.78rem'}}>↳ {err}</p>}
+          <button className="pill-solid" style={{marginTop:4,width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem'}} onClick={tab==='signup'?reg:signin}>{tab==='signup'?t.createAcc:t.signIn}</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ══ CHECKOUT ══ */
