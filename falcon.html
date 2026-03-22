@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Falcon</title>
+<link rel="icon" type="image/png" href="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png"/>
+<link rel="apple-touch-icon" href="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://api.fontshare.com"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gs:'General Sans',system-ui,sans-serif;--ar:'Cairo',system-ui,sans-serif}
+html{scroll-behavior:smooth}
+body{background:#000;color:#fff;overflow-x:hidden}
+body.lang-en{font-family:var(--gs);direction:ltr}
+body.lang-ar{font-family:var(--ar);direction:rtl}
+
+.glass-nav{position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(0,0,0,.55);border-bottom:0.6px solid rgba(255,255,255,.07)}
+.pill-ghost{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:100px;padding:10px 22px;font-size:.875rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .25s;border:0.6px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:#fff;overflow:hidden;letter-spacing:-.01em;gap:7px}
+.pill-ghost::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent)}
+.pill-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+.lang-ar .pill-ghost{letter-spacing:0;font-family:var(--ar)}
+.pill-solid{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:100px;padding:10px 22px;font-size:.875rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .25s;border:0.6px solid rgba(255,255,255,.25);background:#fff;color:#000;overflow:hidden;letter-spacing:-.01em}
+.pill-solid::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent)}
+.pill-solid:hover{background:#e8e8e8;transform:translateY(-1px)}
+.pill-discord{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:100px;padding:10px 22px;font-size:.875rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .25s;background:#5865F2;color:#fff;border:0.6px solid rgba(88,101,242,.45);overflow:hidden}
+.pill-discord::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent)}
+.pill-discord:hover{background:#4752C4;transform:translateY(-1px)}
+.navlink{background:none;border:none;color:rgba(255,255,255,.5);font-size:.83rem;font-weight:500;cursor:pointer;padding:6px 11px;border-radius:8px;transition:all .2s;display:flex;align-items:center;gap:4px;letter-spacing:-.01em;position:relative}
+.navlink:hover{color:#fff;background:rgba(255,255,255,.05)}
+.navlink.active-link{color:#fff}
+.navlink.active-link::after{content:'';position:absolute;bottom:-2px;left:11px;right:11px;height:1px;background:linear-gradient(90deg,transparent,rgba(100,150,255,.7),transparent)}
+.lang-ar .navlink{font-family:var(--ar);letter-spacing:0}
+.lang-btn{background:rgba(255,255,255,.06);border:0.6px solid rgba(255,255,255,.14);border-radius:100px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.7);transition:all .2s;letter-spacing:.04em;white-space:nowrap}
+.lang-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.inp{width:100%;background:rgba(255,255,255,.03);border:0.6px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 16px;color:#fff;font-size:.88rem;outline:none;transition:all .2s}
+.inp:focus{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.05)}
+.inp::placeholder{color:rgba(255,255,255,.18)}
+textarea.inp{resize:vertical;min-height:90px}
+.lang-ar .inp{font-family:var(--ar);text-align:right}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:900;display:flex;align-items:center;justify-content:center}
+.modal{background:#080808;border:0.6px solid rgba(255,255,255,.1);border-radius:24px;padding:38px;width:100%;max-width:420px;position:relative}
+.modal::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:45%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent)}
+.close-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.05);border:0.6px solid rgba(255,255,255,.09);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.35);font-size:.8rem;transition:all .2s}
+.close-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.tab-on{color:#fff;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:4px;font-weight:600}
+.tab-off{color:rgba(255,255,255,.28);border-bottom:1px solid transparent;padding-bottom:4px}
+.drawer{position:fixed;top:0;right:0;height:100%;width:380px;background:#080808;border-left:0.6px solid rgba(255,255,255,.07);z-index:800;display:flex;flex-direction:column}
+.qty-btn{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);border:0.6px solid rgba(255,255,255,.09);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;transition:background .15s}
+.qty-btn:hover{background:rgba(255,255,255,.1)}
+.cbadge{position:absolute;top:-4px;right:-4px;background:#fff;color:#000;border-radius:50%;width:15px;height:15px;font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.uchip{display:flex;align-items:center;gap:8px;border:0.6px solid rgba(255,255,255,.1);border-radius:100px;padding:5px 13px 5px 5px}
+.uavatar{width:25px;height:25px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#000}
+.ppbtn{background:#FFC439;color:#003087;border:none;border-radius:12px;padding:14px;font-size:.9rem;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s}
+.ppbtn:hover{background:#FFB300;transform:translateY(-1px)}
+/* Product icon box */
+.prod-icon{width:42px;height:42px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prod-icon img{width:100%;height:100%;object-fit:cover}
+/* Cards */
+.pcard{background:rgba(255,255,255,.02);border:0.6px solid rgba(30,80,255,.15);border-radius:20px;overflow:hidden;transition:all .35s;position:relative;display:flex;flex-direction:column}
+.pcard:hover{background:rgba(15,40,120,.08);border-color:rgba(60,120,255,.45);box-shadow:0 0 40px rgba(20,60,255,.15),0 0 80px rgba(20,60,255,.07),inset 0 0 30px rgba(20,60,255,.04);transform:translateY(-5px)}
+.pcard-top{height:2px;background:linear-gradient(90deg,transparent,rgba(40,100,255,.6) 30%,rgba(100,160,255,.8) 50%,rgba(40,100,255,.6) 70%,transparent);opacity:.75}
+.acard{background:rgba(255,255,255,.02);border:0.6px solid rgba(100,80,255,.15);border-radius:20px;overflow:hidden;transition:all .35s;position:relative;display:flex;flex-direction:column}
+.acard:hover{background:rgba(60,20,120,.08);border-color:rgba(120,80,255,.45);box-shadow:0 0 40px rgba(80,20,255,.12),inset 0 0 30px rgba(80,20,255,.04);transform:translateY(-5px)}
+.acard-top{height:2px;background:linear-gradient(90deg,transparent,rgba(120,80,255,.7) 30%,rgba(180,120,255,.9) 50%,rgba(120,80,255,.7) 70%,transparent);opacity:.8}
+.dcard{background:rgba(88,101,242,.04);border:0.6px solid rgba(88,101,242,.2);border-radius:18px;overflow:hidden;transition:all .3s;position:relative;display:flex;flex-direction:column}
+.dcard:hover{background:rgba(88,101,242,.09);border-color:rgba(88,101,242,.45);box-shadow:0 0 35px rgba(88,101,242,.15),inset 0 0 20px rgba(88,101,242,.04);transform:translateY(-4px)}
+.rcard{border:0.6px solid rgba(255,255,255,.07);border-radius:20px;padding:26px;transition:border-color .25s,background .25s;position:relative;overflow:hidden}
+.rcard:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.025)}
+.rcard::after{content:'';position:absolute;top:0;left:0;right:0;height:0.6px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+.sec-badge{display:inline-flex;align-items:center;gap:7px;border:0.6px solid rgba(255,255,255,.1);border-radius:100px;padding:5px 14px;font-size:.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.lang-ar .sec-badge{font-family:var(--ar);letter-spacing:0;font-size:.78rem}
+.divider{width:100%;height:0.6px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent)}
+.faq-item{border:0.6px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:border-color .25s,background .25s;background:rgba(255,255,255,.015)}
+.faq-item:hover{border-color:rgba(100,150,255,.25)}
+.faq-item.open{border-color:rgba(60,110,255,.35);background:rgba(20,50,160,.06)}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#fff;text-align:left;gap:16px;transition:background .2s}
+.faq-q:hover{background:rgba(255,255,255,.03)}
+.lang-ar .faq-q{text-align:right;flex-direction:row-reverse}
+.faq-arrow{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.07);border:0.6px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:rgba(255,255,255,.5);transition:all .3s;flex-shrink:0}
+.faq-item.open .faq-arrow{background:rgba(60,110,255,.2);border-color:rgba(60,110,255,.4);color:rgba(140,180,255,.9);transform:rotate(180deg)}
+.faq-ans{padding:0 24px;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s}
+.faq-item.open .faq-ans{max-height:200px;padding:0 24px 20px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes orb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(28px,-18px) scale(1.04)}66%{transform:translate(-18px,14px) scale(.97)}}
+@keyframes orb2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-22px,18px) scale(1.03)}66%{transform:translate(14px,-10px) scale(.98)}}
+@keyframes pulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.85;transform:scale(1.03)}}
+@keyframes particleDrift{0%{transform:translateY(0) translateX(0);opacity:0}20%{opacity:.5}80%{opacity:.35}100%{transform:translateY(-110px) translateX(var(--dx,0px));opacity:0}}
+@keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes revealUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+@keyframes revealFade{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+
+.a1{animation:fadeUp .85s .08s both}.a2{animation:fadeUp .85s .2s both}.a3{animation:fadeUp .85s .34s both}
+.a4{animation:fadeUp .85s .48s both}.a5{animation:fadeUp .85s .62s both}
+.marq{animation:marquee 34s linear infinite}
+@media(max-width:768px){.nav-mid{display:none!important}.drawer{width:100vw}.hero-btns{flex-direction:column;align-items:center}}
+</style>
+</head>
+<body class="lang-en">
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+
+/* ══════════════════════════════════════════════
+   EMAILJS CONFIG — أدخل بياناتك هنا
+   1. روح https://www.emailjs.com وسجل حساب مجاني
+   2. أنشئ Email Service واربطه بجيميلك
+   3. أنشئ Email Template وحط هذي المتغيرات:
+      {{to_name}} {{to_email}} {{html_content}}
+   4. حط الـ IDs هنا تحت
+══════════════════════════════════════════════ */
+const EMAILJS_CONFIG = {
+  publicKey:  'YOUR_PUBLIC_KEY',
+  serviceId:  'YOUR_SERVICE_ID',
+  templateId: 'YOUR_TEMPLATE_ID',
+};
+
+/* ══ FALCON DATABASE ══ */
+const FalconDB = {
+  _uid: () => 'usr_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36),
+  _now: () => new Date().toISOString(),
+  _read: function(){ try{ return JSON.parse(localStorage.getItem('fcn_db')||'null')||{users:[],meta:{totalUsers:0,createdAt:new Date().toISOString()}}; }catch{ return {users:[],meta:{}}; }},
+  _write: function(db){ localStorage.setItem('fcn_db',JSON.stringify(db)); },
+  _migrate: function(){
+    const old=localStorage.getItem('fcn_u');
+    if(!old) return;
+    try{
+      const arr=JSON.parse(old);
+      const db=this._read();
+      arr.forEach(u=>{
+        if(!db.users.find(x=>x.email===u.em)){
+          db.users.push({id:this._uid(),name:u.nm,email:u.em,password:u.pw,createdAt:this._now(),lastLogin:null,purchases:[],verified:false});
+          db.meta.totalUsers++;
+        }
+      });
+      this._write(db);
+      localStorage.removeItem('fcn_u');
+    }catch(e){}
+  },
+  register: function({name,email,password}){
+    this._migrate();
+    const db=this._read();
+    if(db.users.find(u=>u.email===email)) return {ok:false,err:'Email already registered'};
+    const user={id:this._uid(),name,email,password,createdAt:this._now(),lastLogin:this._now(),purchases:[],verified:false};
+    db.users.push(user);
+    db.meta.totalUsers=db.users.length;
+    db.meta.lastUpdated=this._now();
+    this._write(db);
+    return {ok:true,user};
+  },
+  login: function({email,password}){
+    this._migrate();
+    const db=this._read();
+    const user=db.users.find(u=>u.email===email&&u.password===password);
+    if(!user) return {ok:false,err:'Incorrect email or password'};
+    user.lastLogin=this._now();
+    this._write(db);
+    return {ok:true,user};
+  },
+  getUsers: function(){ this._migrate(); return this._read().users; },
+  stats: function(){ const db=this._read(); return {totalUsers:db.users.length,meta:db.meta}; },
+};
+
+/* ══ WELCOME EMAIL ══ */
+function buildWelcomeEmail(name){
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;max-width:560px;">
+<tr><td style="height:2px;background:linear-gradient(90deg,transparent,#3a6fff 30%,#6fa0ff 50%,#3a6fff 70%,transparent);"></td></tr>
+<tr><td align="center" style="padding:44px 48px 32px;">
+<img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" width="40" height="40" style="display:block;margin:0 auto 14px;" alt="Falcon"/>
+<p style="margin:0;color:rgba(255,255,255,.9);font-size:22px;font-weight:700;letter-spacing:-.03em;">falcon</p>
+</td></tr>
+<tr><td style="padding:0 48px;"><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);"></div></td></tr>
+<tr><td style="padding:36px 48px 28px;">
+<p style="margin:0 0 6px;color:rgba(255,255,255,.35);font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Welcome aboard</p>
+<h1 style="margin:0 0 20px;color:#fff;font-size:28px;font-weight:700;letter-spacing:-.035em;line-height:1.2;">Hey, ${name} 👋</h1>
+<p style="margin:0 0 18px;color:rgba(255,255,255,.55);font-size:15px;line-height:1.75;font-weight:300;">Your <strong style="color:rgba(255,255,255,.85);font-weight:600;">Falcon account</strong> has been successfully created. You're now part of an exclusive community that gets access to the best digital services at unbeatable prices.</p>
+<p style="margin:0 0 28px;color:rgba(255,255,255,.55);font-size:15px;line-height:1.75;font-weight:300;">Whether you're looking for premium subscriptions, Discord bots, or Nitro — we've got you covered. Quality is the only language we speak. 🦅</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+<tr>
+<td width="48%" style="background:rgba(255,255,255,.03);border:1px solid rgba(40,80,255,.2);border-radius:12px;padding:16px 18px;vertical-align:top;">
+<p style="margin:0 0 6px;font-size:18px;">⚡</p><p style="margin:0 0 4px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;">Instant Delivery</p><p style="margin:0;color:rgba(255,255,255,.35);font-size:12px;font-weight:300;">Products delivered within 24h</p>
+</td><td width="4%"></td>
+<td width="48%" style="background:rgba(255,255,255,.03);border:1px solid rgba(40,80,255,.2);border-radius:12px;padding:16px 18px;vertical-align:top;">
+<p style="margin:0 0 6px;font-size:18px;">🛡️</p><p style="margin:0 0 4px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;">Full Warranty</p><p style="margin:0;color:rgba(255,255,255,.35);font-size:12px;font-weight:300;">Covered replacements, always</p>
+</td></tr><tr><td colspan="3" height="10"></td></tr><tr>
+<td width="48%" style="background:rgba(255,255,255,.03);border:1px solid rgba(40,80,255,.2);border-radius:12px;padding:16px 18px;vertical-align:top;">
+<p style="margin:0 0 6px;font-size:18px;">💎</p><p style="margin:0 0 4px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;">Premium Quality</p><p style="margin:0;color:rgba(255,255,255,.35);font-size:12px;font-weight:300;">100% secure & guaranteed</p>
+</td><td width="4%"></td>
+<td width="48%" style="background:rgba(255,255,255,.03);border:1px solid rgba(40,80,255,.2);border-radius:12px;padding:16px 18px;vertical-align:top;">
+<p style="margin:0 0 6px;font-size:18px;">🎯</p><p style="margin:0 0 4px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;">24/7 Support</p><p style="margin:0;color:rgba(255,255,255,.35);font-size:12px;font-weight:300;">Our team is always ready</p>
+</td></tr></table>
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<a href="https://discord.gg/fcn" style="display:inline-block;background:#5865F2;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:14px 36px;border-radius:100px;">Join our Discord →</a>
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:0 48px;"><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);"></div></td></tr>
+<tr><td align="center" style="padding:24px 48px 36px;">
+<p style="margin:0 0 6px;color:rgba(255,255,255,.18);font-size:12px;font-weight:300;">© 2026 Falcon by Mythic. All rights reserved.</p>
+<p style="margin:0;color:rgba(255,255,255,.12);font-size:11px;font-weight:300;">You received this because you signed up at falcon.</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+async function sendWelcomeEmail(name,email){
+  try{
+    if(EMAILJS_CONFIG.publicKey==='YOUR_PUBLIC_KEY'){
+      console.warn('📧 EmailJS not configured — fill in EMAILJS_CONFIG at top of script.');
+      return;
+    }
+    emailjs.init({publicKey:EMAILJS_CONFIG.publicKey});
+    await emailjs.send(EMAILJS_CONFIG.serviceId,EMAILJS_CONFIG.templateId,{
+      to_name:name,
+      to_email:email,
+      html_content:buildWelcomeEmail(name),
+    });
+    console.log('✅ Welcome email sent to',email);
+  }catch(e){
+    console.warn('📧 Email send failed (non-critical):',e);
+  }
+}
+
+/* ══ TRANSLATIONS ══ */
+const T={
+  en:{dir:'ltr',font:'General Sans',
+    nav:{home:'Home',about:'About Us',terms:'Terms'},
+    heroSub:'In the sky, quality is the only language.',heroWelcome:'Welcome to falcon',
+    heroDesc:'The most powerful AI ever deployed\nin talent acquisition.',
+    browseProducts:'Browse Products',discord:'Discord',youtube:'YouTube',scroll:'Scroll',trustedBy:'Trusted by',
+    botsLabel:'Discord Bots',botsTitle:'Everything your server needs.',botsDesc:'Professional Discord bots. One-time payment. Lifetime access.',
+    addToCart:'Add to cart',buyNow:'Buy now',oneTime:'one-time',
+    appsLabel:'Applications',appsTitle:'Premium Subscriptions.',
+    appsAr:'وجهتك الأولى للألعاب والاشتراكات الأمنة والضّمونة 100% بأسعار رهيبة!',
+    appsDesc:'Your #1 destination — 100% secure, 100% guaranteed, at unbeatable prices.',
+    discordLabel:'Discord Perks',discordTitle:'Boost your Discord experience.',discordDesc:'Authentic Nitro subscriptions and server boosts delivered fast and securely.',
+    faqLabel:'FAQ',faqTitle:'Common questions.',
+    faqItems:[
+      {q:'How can I get support?',a:'If you need support for any reason, you can access our Discord where our staff will always be there to help you.'},
+      {q:'What payment methods do you accept?',a:'We accept PayPal, Bitcoin, Litecoin, and various other digital payment methods. All payments are processed securely.'},
+      {q:'What do you specialize in?',a:'We specialize in Discord bot development, automation, and creating smooth, scalable server systems.'},
+    ],
+    reviewsLabel:'Reviews',reviewsTitle:'Loved by communities.',reviewsDesc:'Real reviews from real server owners.',reviewsAvg:'reviews',
+    leaveReview:'Leave a Review',reviewShare:'Share your experience with the community.',reviewName:'Your name',reviewRole:'Product name (optional)',
+    reviewRating:'Rating',reviewText:'Tell us about your experience...',reviewSubmit:'Submit Review →',
+    reviewThanks:'Thank you for your review!',reviewAdded:'Your review has been added.',
+    continue:'Continue →',createAcc:'Create account',signIn:'Sign in',signUp:'Sign up',
+    cart:'Cart',cartEmpty:'Your cart is empty',browseProductsBtn:'Browse products',total:'Total',checkout:'Checkout',
+    orderSummary:'Order summary',secureCheckout:'Secure checkout · Powered by PayPal',payWith:'Pay with PayPal',
+    botDelivery:'Delivered within 24 hours via Discord DM or email.',warranty:'Full warranty included',
+    cartItems:(n)=>`${n} item${n!==1?'s':''}`,
+  },
+  ar:{dir:'rtl',font:'Cairo',
+    nav:{home:'الرئيسية',about:'من نحن',terms:'الشروط'},
+    heroSub:'في السماء، الجودة هي اللغة الوحيدة.',heroWelcome:'أهلاً بك في فالكون',
+    heroDesc:'أقوى ذكاء اصطناعي تم نشره\nفي مجال اكتساب المواهب.',
+    browseProducts:'تصفّح المنتجات',discord:'ديسكورد',youtube:'يوتيوب',scroll:'انزل',trustedBy:'موثوق من قبل',
+    botsLabel:'بوتات ديسكورد',botsTitle:'كل ما يحتاجه سيرفرك.',botsDesc:'بوتات ديسكورد احترافية. دفعة واحدة. وصول مدى الحياة.',
+    addToCart:'أضف للسلة',buyNow:'اشتري الآن',oneTime:'دفعة واحدة',
+    appsLabel:'التطبيقات',appsTitle:'اشتراكات مميزة.',
+    appsAr:'وجهتك الأولى للألعاب والاشتراكات الأمنة والضّمونة 100% بأسعار رهيبة!',
+    appsDesc:'وجهتك الأولى للألعاب والاشتراكات الأمنة والضّمونة 100% بأسعار رهيبة!',
+    discordLabel:'مميزات ديسكورد',discordTitle:'طوّر تجربتك على ديسكورد.',discordDesc:'اشتراكات نيترو أصلية وبوستات سيرفر تُسلَّم بسرعة وأمان.',
+    faqLabel:'الأسئلة الشائعة',faqTitle:'أسئلة شائعة.',
+    faqItems:[
+      {q:'كيف يمكنني الحصول على الدعم؟',a:'يمكنك الوصول إلى سيرفرنا على ديسكورد حيث يكون فريقنا دائمًا متاحًا لمساعدتك في أي وقت.'},
+      {q:'ما طرق الدفع المقبولة؟',a:'نقبل PayPal، البيتكوين، لايتكوين، وطرق دفع رقمية أخرى. جميع المدفوعات تتم بأمان تام.'},
+      {q:'ما مجال تخصصكم؟',a:'نتخصص في تطوير بوتات ديسكورد والأتمتة وإنشاء أنظمة سيرفر سلسة وقابلة للتوسع.'},
+    ],
+    reviewsLabel:'التقييمات',reviewsTitle:'يحبّه الجميع.',reviewsDesc:'تقييمات حقيقية من مالكي سيرفرات حقيقيين.',reviewsAvg:'تقييم',
+    leaveReview:'اترك تقييمًا',reviewShare:'شارك تجربتك مع المجتمع.',reviewName:'اسمك',reviewRole:'اسم المنتج (اختياري)',
+    reviewRating:'التقييم',reviewText:'أخبرنا عن تجربتك...',reviewSubmit:'إرسال التقييم ←',
+    reviewThanks:'شكرًا على تقييمك!',reviewAdded:'تم إضافة تقييمك إلى الصفحة.',
+    continue:'متابعة ←',createAcc:'إنشاء حساب',signIn:'تسجيل الدخول',signUp:'اشتراك',
+    cart:'السلة',cartEmpty:'سلتك فارغة',browseProductsBtn:'تصفح المنتجات',total:'الإجمالي',checkout:'الدفع',
+    orderSummary:'ملخص الطلب',secureCheckout:'دفع آمن · مدعوم من PayPal',payWith:'الدفع عبر PayPal',
+    botDelivery:'يتم التسليم خلال 24 ساعة عبر ديسكورد أو البريد الإلكتروني.',warranty:'ضمان كامل مشمول',
+    cartItems:(n)=>`${n} عنصر`,
+  }
+};
+
+/* ══ DATA ══ */
+const BOTS=[
+  {id:1,name:{en:'Music Bot',ar:'بوت الموسيقى'},sym:'♫',img:null,
+   desc:{en:'Spotify & YouTube streaming, 50+ audio effects, smart queue management, and 24/7 uptime.',ar:'بث Spotify و YouTube، أكثر من 50 تأثير صوتي، إدارة ذكية للقائمة، وضمان تشغيل 24/7.'},
+   feats:{en:['Spotify & YouTube','50+ Audio Effects','Smart Queue','24/7 Uptime'],ar:['سبوتيفاي ويوتيوب','50+ تأثير صوتي','قائمة ذكية','تشغيل 24/7']},
+   price:10,type:'bot'},
+  {id:2,name:{en:'Ticket Bot',ar:'بوت التذاكر'},sym:'img',img:'https://i.postimg.cc/1X7K09YW/Browse-Products.png',
+   desc:{en:'Professional support ticketing with category routing, staff assignment, full transcripts, and analytics.',ar:'نظام تذاكر دعم احترافي مع توجيه الفئات وتعيين الموظفين والنصوص الكاملة والتحليلات.'},
+   feats:{en:['Staff Assignment','Auto Transcripts','Category Routing','Priority System'],ar:['تعيين الموظفين','نصوص تلقائية','توجيه الفئات','نظام الأولوية']},
+   price:10,type:'bot'},
+  {id:3,name:{en:'System Bot',ar:'بوت النظام'},sym:'⬡',img:null,
+   desc:{en:'Complete server automation — moderation, welcome flows, role management, and audit logs.',ar:'أتمتة كاملة للسيرفر — الإشراف، رسائل الترحيب، إدارة الرتب، وسجلات التدقيق.'},
+   feats:{en:['Auto-Moderation','Welcome Flows','Role Management','Audit Logs'],ar:['إشراف تلقائي','تدفقات الترحيب','إدارة الرتب','سجلات التدقيق']},
+   price:10,type:'bot'},
+  {id:4,name:{en:'Gaming Bot',ar:'بوت الألعاب'},sym:'🎮',img:null,
+   desc:{en:'Level up your server with 30+ built-in games — solo & multiplayer. Trivia, chess, Uno, word games, XP leaderboard, daily challenges, and tournament mode.',ar:'طوّر سيرفرك بأكثر من 30 لعبة مدمجة — فردية وجماعية. ألعاب معلومات، شطرنج، أونو، ألعاب كلمات، لوحة XP، تحديات يومية، ووضع البطولات.'},
+   feats:{en:['30+ Mini Games','XP Leaderboard','Daily Challenges','Tournament Mode'],ar:['30+ لعبة مصغرة','لوحة متصدرين XP','تحديات يومية','وضع البطولات']},
+   price:5,type:'bot'},
+];
+
+const APPS=[
+  {id:10,name:{en:'Netflix',ar:'نتفليكس'},img:'https://i.postimg.cc/ht7yKdf6/Browse-Products-(2).png',
+   desc:{en:'1-Month Netflix account — 4K Ultra HD quality, full warranty for the entire month, instant delivery.',ar:'حساب نتفليكس لمدة شهر — جودة 4K Ultra HD، ضمان كامل طوال الشهر، تسليم فوري.'},
+   feats:{en:['4K Ultra HD','Full Month Warranty','Instant Delivery','Secure Account'],ar:['جودة 4K Ultra HD','ضمان شهر كامل','تسليم فوري','حساب آمن']},
+   price:3,billing:{en:'/ month',ar:'/ شهر'},type:'app'},
+  {id:11,name:{en:'Canva Pro',ar:'كانفا برو'},img:'https://i.postimg.cc/hvpw7RBV/Browse-Products-(1).png',
+   desc:{en:'1-Year Canva Pro account — unlimited premium templates, brand kit, background remover, and all Pro features.',ar:'حساب Canva Pro لسنة كاملة — قوالب مميزة غير محدودة، مجموعة العلامة التجارية، إزالة الخلفية، وجميع ميزات Pro.'},
+   feats:{en:['Full Year Access','All Pro Features','Brand Kit','Background Remover'],ar:['وصول لسنة كاملة','كل ميزات Pro','مجموعة العلامة','إزالة الخلفية']},
+   price:9.99,billing:{en:'/ year',ar:'/ سنة'},type:'app'},
+];
+
+const DISCORD_ITEMS=[
+  {id:20,name:{en:'Nitro — 1 Month',ar:'نيترو — شهر'},img:'https://i.postimg.cc/x1HRwV4W/Browse-Products-(3).png',
+   desc:{en:'1 month of Discord Nitro. Animated avatars, custom tags, boosted upload limits, and premium emojis.',ar:'شهر كامل من Discord Nitro. صور متحركة، تاقات مخصصة، رفع ملفات أكبر، وإيموجي مميزة.'},
+   price:3.99,billing:{en:'/ month',ar:'/ شهر'}},
+  {id:21,name:{en:'Nitro — 1 Year',ar:'نيترو — سنة'},img:'https://i.postimg.cc/x1HRwV4W/Browse-Products-(3).png',
+   desc:{en:'12 months of Discord Nitro at a discounted rate. All Nitro features year-round.',ar:'12 شهرًا من Discord Nitro بسعر مخفض. جميع ميزات Nitro طوال العام.'},
+   price:29.99,billing:{en:'/ year',ar:'/ سنة'},badge:{en:'Best Value',ar:'أفضل قيمة'}},
+  {id:22,name:{en:'14 Boosts — 1 Month',ar:'14 بوست — شهر'},img:'https://i.postimg.cc/T1FVstqy/Browse-Products-(4).png',
+   desc:{en:'14 server boosts for 1 month. Unlock Level 3 — enhanced audio, custom banner, vanity URL and more.',ar:'14 بوست سيرفر لمدة شهر. فعّل المستوى 3 — صوت محسّن، بانر مخصص، رابط مخصص والمزيد.'},
+   price:9.99,billing:{en:'/ month',ar:'/ شهر'}},
+  {id:23,name:{en:'14 Boosts — 3 Months',ar:'14 بوست — 3 أشهر'},img:'https://i.postimg.cc/T1FVstqy/Browse-Products-(4).png',
+   desc:{en:'14 server boosts for 3 months. Keep your server at Level 3 with all perks for a full quarter.',ar:'14 بوست سيرفر لمدة 3 أشهر. حافظ على سيرفرك عند المستوى 3 لربع سنة كامل.'},
+   price:24.99,billing:{en:'/ 3 months',ar:'/ 3 أشهر'},badge:{en:'Save More',ar:'وفّر أكثر'}},
+];
+
+const SEED_REVIEWS=[
+  {id:'s1',name:'Ahmed Al-Rashid',role:'Music Bot',av:'AR',stars:5,text:'The music bot completely transformed our server. Crystal clear audio, zero lag. Our members are obsessed.',date:'Mar 2026'},
+  {id:'s2',name:'Sarah K.',role:'Ticket Bot',av:'SK',stars:5,text:'Ticket Bot saved us hours every week. The auto-assign feature is a game-changer. Setup took 5 minutes.',date:'Feb 2026'},
+  {id:'s3',name:'Marcus Chen',role:'System Bot',av:'MC',stars:5,text:'System Bot handles everything automatically. I barely moderate anymore. Best $10 I ever spent.',date:'Mar 2026'},
+  {id:'s4',name:'Layla Hassan',role:'Music Bot',av:'LH',stars:5,text:'We tried 4 different bots before Falcon. Nothing comes close. The reliability is worth every penny.',date:'Jan 2026'},
+  {id:'s5',name:'Dev.Nomad',role:'System Bot',av:'DN',stars:5,text:'Insane value. The welcome system is beautiful, members love it. Support responded in under an hour.',date:'Feb 2026'},
+  {id:'s6',name:'Omar Zaid',role:'Gaming Bot',av:'OZ',stars:5,text:'Gaming Bot is the highlight of our server. The tournament mode is amazing, members play every day!',date:'Mar 2026'},
+];
+
+/* ══ ICONS ══ */
+const DiscordSvg=()=>(<svg width="15" height="12" viewBox="0 0 71 55" fill="currentColor"><path d="M60.105 4.898A58.55 58.55 0 0 0 45.653.415a.22.22 0 0 0-.233.11 40.784 40.784 0 0 0-1.8 3.697c-5.456-.817-10.886-.817-16.23 0-.485-1.164-1.201-2.587-1.828-3.697a.228.228 0 0 0-.233-.11 58.386 58.386 0 0 0-14.451 4.483.207.207 0 0 0-.095.082C1.578 18.73-.944 32.144.293 45.39a.244.244 0 0 0 .093.167c6.073 4.46 11.956 7.167 17.729 8.962a.23.23 0 0 0 .249-.082 42.08 42.08 0 0 0 3.627-5.9.225.225 0 0 0-.123-.312 38.772 38.772 0 0 1-5.539-2.64.228.228 0 0 1-.022-.378 31.269 31.269 0 0 0 1.1-.862.22.22 0 0 1 .23-.031c11.62 5.305 24.198 5.305 35.678 0a.219.219 0 0 1 .232.028c.356.293.728.586 1.103.865a.228.228 0 0 1-.02.378 36.384 36.384 0 0 1-5.54 2.638.226.226 0 0 0-.12.314 47.249 47.249 0 0 0 3.623 5.897.225.225 0 0 0 .248.084c5.801-1.794 11.684-4.502 17.757-8.961a.228.228 0 0 0 .092-.164c1.48-15.315-2.48-28.618-10.497-40.412a.18.18 0 0 0-.093-.084zm-36.38 32.427c-3.497 0-6.38-3.211-6.38-7.156 0-3.944 2.827-7.156 6.38-7.156 3.583 0 6.437 3.24 6.38 7.156 0 3.945-2.827 7.156-6.38 7.156zm23.593 0c-3.498 0-6.38-3.211-6.38-7.156 0-3.944 2.826-7.156 6.38-7.156 3.582 0 6.437 3.24 6.38 7.156 0 3.945-2.798 7.156-6.38 7.156z"/></svg>);
+const YoutubeSvg=()=>(<svg width="16" height="12" viewBox="0 0 24 17" fill="currentColor"><path d="M23.495 2.616S23.24.62 22.368.025C21.257-.67 20.007-.02 18.858.12 15.98.336 12 .336 12 .336S8.02.336 5.142.12C3.993-.02 2.743-.67 1.632.025.76.62.505 2.616.505 2.616S.25 4.95.25 7.284v2.18c0 2.334.255 4.668.255 4.668s.255 1.996 1.127 2.59c1.111.696 2.573.464 3.853.556C7.02 17.172 12 17.25 12 17.25s3.98-.006 6.858-.152c1.149-.14 2.399-.007 3.51-.703.872-.594 1.127-2.59 1.127-2.59s.255-2.334.255-4.668v-2.18c0-2.334-.255-4.668-.255-4.668zM9.75 11.75v-6.5l6.5 3.25-6.5 3.25z"/></svg>);
+
+/* ══ PRODUCT ICON — small, uniform, all using images or emoji ══ */
+function ProdIcon({item,size=42,radius=12,borderColor='rgba(40,100,255,.3)',bg='rgba(20,60,255,.08)'}){
+  if(item.img){
+    return(
+      <div style={{width:size,height:size,borderRadius:radius,overflow:'hidden',border:`0.6px solid ${borderColor}`,background:bg,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <img src={item.img} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+      </div>
+    );
+  }
+  return(
+    <div style={{width:size,height:size,borderRadius:radius,border:`0.6px solid ${borderColor}`,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.25rem',flexShrink:0}}>
+      {item.sym}
+    </div>
+  );
+}
+
+/* ══ HLS VIDEO ══ */
+function HLSVideo({src,style}){
+  const vr=useRef(null);
+  useEffect(()=>{
+    const v=vr.current;if(!v||!src)return;
+    let hls;
+    if(window.Hls&&window.Hls.isSupported()){
+      hls=new window.Hls();hls.loadSource(src);hls.attachMedia(v);
+      hls.on(window.Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));
+    }else if(v.canPlayType('application/vnd.apple.mpegurl')){
+      v.src=src;v.addEventListener('loadedmetadata',()=>v.play().catch(()=>{}));
+    }
+    return()=>{if(hls)hls.destroy()};
+  },[src]);
+  return <video ref={vr} muted loop playsInline style={style}/>;
+}
+
+/* ══ BG ══ */
+function Particles({count=16,color='rgba(80,130,255,.45)'}){
+  const ps=useMemo(()=>Array.from({length:count},(_,i)=>({id:i,left:`${5+Math.random()*90}%`,top:`${10+Math.random()*80}%`,size:Math.random()*2.5+1.5,delay:`${Math.random()*7}s`,dur:`${5+Math.random()*7}s`,dx:`${(Math.random()-.5)*55}px`})),[count]);
+  return(<div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:2}}>{ps.map(p=>(<div key={p.id} style={{position:'absolute',left:p.left,top:p.top,width:p.size,height:p.size,borderRadius:'50%',background:color,animation:`particleDrift ${p.dur} ${p.delay} infinite`,'--dx':p.dx,opacity:0}}/>))}</div>);
+}
+function AnimatedOrbs(){
+  return(<div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:1}}>
+    <div style={{position:'absolute',top:'-15%',left:'15%',width:700,height:700,background:'radial-gradient(ellipse,rgba(25,70,255,.18) 0%,rgba(25,70,255,.05) 45%,transparent 70%)',animation:'orb 20s ease-in-out infinite',filter:'blur(3px)'}}/>
+    <div style={{position:'absolute',bottom:'-8%',right:'15%',width:600,height:600,background:'radial-gradient(ellipse,rgba(80,50,255,.13) 0%,rgba(80,50,255,.04) 45%,transparent 70%)',animation:'orb2 24s ease-in-out infinite',filter:'blur(3px)'}}/>
+    <div style={{position:'absolute',top:'35%',left:'50%',transform:'translateX(-50%)',width:280,height:280,background:'radial-gradient(ellipse,rgba(50,100,255,.09) 0%,transparent 65%)',animation:'pulse 9s ease-in-out infinite'}}/>
+  </div>);
+}
+function GridLines(){
+  return(<div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:1,opacity:.05}}>
+    {[0,1,2,3,4,5].map(i=>(<div key={i} style={{position:'absolute',left:0,right:0,top:`${i*20}%`,height:'0.6px',background:'linear-gradient(90deg,transparent,rgba(255,255,255,.7) 20%,rgba(255,255,255,.7) 80%,transparent)'}}/>))}
+    {[0,1,2,3,4,5,6,7].map(i=>(<div key={i} style={{position:'absolute',top:0,bottom:0,left:`${i*14.28}%`,width:'0.6px',background:'linear-gradient(180deg,transparent,rgba(255,255,255,.7) 20%,rgba(255,255,255,.7) 80%,transparent)'}}/>))}
+  </div>);
+}
+function VideoBg(){
+  const vr=useRef(null),rr=useRef(null);
+  useEffect(()=>{
+    const v=vr.current;if(!v)return;
+    const F=0.6,tick=()=>{const{currentTime:t,duration:d}=v;if(d)v.style.opacity=Math.min(t/F,.55,(d-t)/F);rr.current=requestAnimationFrame(tick)};
+    const end=()=>{v.style.opacity=0;setTimeout(()=>{v.currentTime=0;v.play()},80)};
+    v.addEventListener('ended',end);v.play().catch(()=>{});rr.current=requestAnimationFrame(tick);
+    return()=>{cancelAnimationFrame(rr.current);v.removeEventListener('ended',end)};
+  },[]);
+  return(<video ref={vr} autoPlay muted playsInline loop style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:0,zIndex:0}}><source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260308_114720_3dabeb9e-2c39-4907-b747-bc3544e2d5b7.mp4" type="video/mp4"/></video>);
+}
+function Marquee(){
+  const B=['Vortex','Nimbus','Prysma','Cirrus','Kynder','Halcyn','Stratos','Zenith'];
+  const all=[...B,...B,...B];
+  return(<div style={{overflow:'hidden',maskImage:'linear-gradient(90deg,transparent,#fff 6%,#fff 94%,transparent)',WebkitMaskImage:'linear-gradient(90deg,transparent,#fff 6%,#fff 94%,transparent)'}}><div className="marq" style={{display:'flex',gap:48,width:'max-content',alignItems:'center'}}>{all.map((b,i)=><span key={i} style={{fontSize:'.78rem',fontWeight:500,color:'rgba(255,255,255,.2)',letterSpacing:'.06em',textTransform:'uppercase',flexShrink:0,whiteSpace:'nowrap'}}>{b}</span>)}</div></div>);
+}
+function Stars({n=5,sz=11}){
+  return(<div style={{display:'flex',gap:2}}>{Array.from({length:n}).map((_,i)=>(<svg key={i} width={sz} height={sz} viewBox="0 0 12 12" fill="rgba(255,210,50,.85)"><path d="M6 .5 7.55 4.16 11.5 4.55 8.75 7.19 9.55 11.1 6 9.1 2.45 11.1 3.25 7.19.5 4.55 4.45 4.16z"/></svg>))}{Array.from({length:5-n}).map((_,i)=>(<svg key={'e'+i} width={sz} height={sz} viewBox="0 0 12 12" fill="rgba(255,255,255,.13)"><path d="M6 .5 7.55 4.16 11.5 4.55 8.75 7.19 9.55 11.1 6 9.1 2.45 11.1 3.25 7.19.5 4.55 4.45 4.16z"/></svg>))}</div>);
+}
+function StarPicker({value,onChange}){
+  const[hov,setHov]=useState(0);
+  return(<div style={{display:'flex',gap:4}}>{[1,2,3,4,5].map(n=>(<button key={n} onClick={()=>onChange(n)} onMouseEnter={()=>setHov(n)} onMouseLeave={()=>setHov(0)} style={{background:'none',border:'none',cursor:'pointer',padding:2,transition:'transform .15s',transform:(hov||value)>=n?'scale(1.15)':'scale(1)'}}><svg width={22} height={22} viewBox="0 0 12 12" fill={(hov||value)>=n?'rgba(255,210,50,.9)':'rgba(255,255,255,.15)'} style={{transition:'fill .15s'}}><path d="M6 .5 7.55 4.16 11.5 4.55 8.75 7.19 9.55 11.1 6 9.1 2.45 11.1 3.25 7.19.5 4.55 4.45 4.16z"/></svg></button>))}</div>);
+}
+
+/* ══ CART ICON ══ */
+function CartIcon({count,onClick}){
+  return(<button onClick={onClick} style={{position:'relative',background:'rgba(255,255,255,.04)',border:'0.6px solid rgba(255,255,255,.09)',borderRadius:100,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background .2s'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,.09)'} onMouseOut={e=>e.currentTarget.style.background='rgba(255,255,255,.04)'}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>{count>0&&<span className="cbadge">{count}</span>}</button>);
+}
+
+/* ══ AUTH MODAL ══ */
+function AuthModal({onClose,initTab,onLogin,t}){
+  const[tab,setTab]=useState(initTab||'signup');
+  const[nm,setNm]=useState('');const[em,setEm]=useState('');const[pw,setPw]=useState('');
+  const[err,setErr]=useState('');const[ok,setOk]=useState(null);
+  const reg=async()=>{
+    setErr('');
+    if(!nm.trim()) return setErr('Name required');
+    if(!em.includes('@')) return setErr('Valid email required');
+    if(pw.length<6) return setErr('Password 6+ chars');
+    const result=FalconDB.register({name:nm,email:em,password:pw});
+    if(!result.ok) return setErr(result.err);
+    const s={name:nm,em,id:result.user.id};
+    localStorage.setItem('fcn_s',JSON.stringify(s));
+    sendWelcomeEmail(nm,em);
+    setOk(s);
+    onLogin(s);
+  };
+  const signin=()=>{
+    setErr('');
+    if(!em.includes('@')) return setErr('Valid email required');
+    if(!pw) return setErr('Password required');
+    const result=FalconDB.login({email:em,password:pw});
+    if(!result.ok) return setErr(result.err);
+    const s={name:result.user.name,em,id:result.user.id};
+    localStorage.setItem('fcn_s',JSON.stringify(s));
+    setOk(s);
+    onLogin(s);
+  };
+  if(ok)return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)',textAlign:'center'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,255,255,.9)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',color:'#000',fontSize:'1.3rem',fontWeight:700}}>✓</div><h2 style={{fontWeight:600,fontSize:'1.2rem',letterSpacing:'-.025em',marginBottom:8}}>Welcome, {ok.name.split(' ')[0]}.</h2><button className="pill-solid" style={{width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem',marginTop:20}} onClick={onClose}>{t.continue}</button></div></div>);
+  return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:26}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:26,height:26,objectFit:'contain'}} alt=""/><span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.03em'}}>falcon</span></div><div style={{display:'flex',gap:22,marginBottom:26}}>{['signup','signin'].map(tp=>(<button key={tp} onClick={()=>{setTab(tp);setErr('')}} className={tab===tp?'tab-on':'tab-off'} style={{background:'none',border:'none',cursor:'pointer',fontWeight:500,fontSize:'.92rem',transition:'all .2s',letterSpacing:'-.015em'}}>{tp==='signup'?t.createAcc:t.signIn}</button>))}</div><div style={{display:'flex',flexDirection:'column',gap:10}}>{tab==='signup'&&<input className="inp" placeholder={t.reviewName} value={nm} onChange={e=>setNm(e.target.value)} autoFocus/>}<input className="inp" type="email" placeholder="Email" value={em} onChange={e=>setEm(e.target.value)} autoFocus={tab==='signin'}/><input className="inp" type="password" placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(tab==='signup'?reg():signin())}/>{err&&<p style={{color:'rgba(255,80,80,.85)',fontSize:'.78rem'}}>↳ {err}</p>}<button className="pill-solid" style={{marginTop:6,width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem'}} onClick={tab==='signup'?reg:signin}>{tab==='signup'?t.createAcc:t.signIn}</button></div></div></div>);
+}
+
+/* ══ CHECKOUT ══ */
+function Checkout({items,total,onClose,product,t}){
+  const allItems=[...BOTS,...APPS,...DISCORD_ITEMS];
+  const di=product?[{...product,qty:1}]:items;
+  const dt=product?product.price:total;
+  const l=t===T.ar?'ar':'en';
+  const url=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saifxj1%40gmail.com&currency_code=USD&amount=${dt.toFixed(2)}&item_name=Falcon+Products`;
+  return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{maxWidth:450,animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:22}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:24,height:24,objectFit:'contain'}} alt=""/><span style={{fontWeight:600,fontSize:'.9rem',letterSpacing:'-.025em'}}>{t.checkout}</span></div><div style={{border:'0.6px solid rgba(255,255,255,.07)',borderRadius:14,padding:16,marginBottom:14}}><p style={{fontSize:'.68rem',textTransform:'uppercase',letterSpacing:'.12em',color:'rgba(255,255,255,.25)',marginBottom:14}}>{t.orderSummary}</p>{di.map((item,i)=>{const p=allItems.find(x=>x.id===item.id)||item;return(<div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderTop:i>0?'0.6px solid rgba(255,255,255,.05)':'none'}}><div style={{display:'flex',alignItems:'center',gap:10}}><ProdIcon item={p} size={34} radius={8} borderColor="rgba(255,255,255,.12)" bg="rgba(255,255,255,.04)"/><div><p style={{fontWeight:500,fontSize:'.84rem'}}>{typeof p.name==='object'?p.name[l]:p.name}</p><p style={{color:'rgba(255,255,255,.28)',fontSize:'.72rem',fontWeight:300}}>× {item.qty||1}</p></div></div><span style={{fontWeight:600,fontSize:'.88rem'}}>${(p.price*(item.qty||1)).toFixed(2)}</span></div>);})}<div style={{borderTop:'0.6px solid rgba(255,255,255,.09)',marginTop:12,paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{color:'rgba(255,255,255,.45)',fontSize:'.85rem'}}>{t.total}</span><span style={{fontWeight:700,fontSize:'1.25rem',letterSpacing:'-.03em'}}>${dt.toFixed(2)}</span></div></div><div style={{border:'0.6px solid rgba(255,255,255,.05)',borderRadius:12,padding:'10px 14px',marginBottom:14,display:'flex',gap:8}}><span style={{color:'rgba(255,255,255,.5)',flexShrink:0}}>⚡</span><p style={{fontSize:'.78rem',color:'rgba(255,255,255,.38)',lineHeight:1.65,fontWeight:300}}>{t.botDelivery}</p></div><button className="ppbtn" onClick={()=>window.open(url,'_blank')}><svg width="17" height="17" viewBox="0 0 24 24" fill="#003087"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.58 2.977-2.553 6.003-7.498 6.003H11.13c-.524 0-.968.382-1.05.9l-1.343 8.514a.641.641 0 0 0 .633.74h4.27c.524 0 .968-.38 1.05-.9l.89-5.63c.083-.52.527-.9 1.05-.9h1.38c3.977 0 6.32-2.297 7.17-6.46.376-1.839.218-3.21-.958-3.98z"/></svg>{t.payWith} — ${dt.toFixed(2)}</button><p style={{textAlign:'center',marginTop:10,color:'rgba(255,255,255,.18)',fontSize:'.7rem',fontWeight:300}}>{t.secureCheckout}</p></div></div>);
+}
+
+/* ══ CART DRAWER ══ */
+function CartDrawer({cart,onClose,onQty,onRemove,onCheckout,t}){
+  const allItems=[...BOTS,...APPS,...DISCORD_ITEMS];
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const l=t===T.ar?'ar':'en';
+  return(<><div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.65)',backdropFilter:'blur(4px)',zIndex:790,animation:'fadeIn .2s'}}/><div className="drawer" style={{animation:'slideIn .28s cubic-bezier(.25,1,.5,1)'}}><div style={{padding:'20px 24px 16px',borderBottom:'0.6px solid rgba(255,255,255,.07)',display:'flex',alignItems:'center',justifyContent:'space-between'}}><div style={{display:'flex',alignItems:'center',gap:10}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.025em'}}>{t.cart}</span>{cart.length>0&&<span style={{background:'rgba(255,255,255,.06)',border:'0.6px solid rgba(255,255,255,.09)',borderRadius:100,padding:'2px 9px',fontSize:'.7rem',color:'rgba(255,255,255,.45)'}}>{t.cartItems(cart.reduce((s,i)=>s+i.qty,0))}</span>}</div><button className="close-btn" style={{position:'static'}} onClick={onClose}>✕</button></div><div style={{flex:1,overflowY:'auto',padding:'14px 24px'}}>{cart.length===0?(<div style={{textAlign:'center',paddingTop:60}}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.13)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{margin:'0 auto 14px',display:'block'}}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><p style={{color:'rgba(255,255,255,.28)',fontSize:'.88rem',fontWeight:300}}>{t.cartEmpty}</p><button className="pill-ghost" style={{marginTop:20,fontSize:'.8rem',padding:'8px 20px'}} onClick={onClose}>{t.browseProductsBtn}</button></div>):cart.map(item=>{const p=allItems.find(x=>x.id===item.id)||item;return(<div key={item.id} style={{display:'flex',gap:12,alignItems:'center',padding:'14px 0',borderBottom:'0.6px solid rgba(255,255,255,.05)'}}><ProdIcon item={p} size={40} radius={10} borderColor="rgba(255,255,255,.09)" bg="rgba(255,255,255,.03)"/><div style={{flex:1}}><p style={{fontWeight:500,fontSize:'.88rem',letterSpacing:'-.01em',marginBottom:7}}>{typeof p.name==='object'?p.name[l]:p.name}</p><div style={{display:'flex',alignItems:'center',gap:7}}><button className="qty-btn" onClick={()=>onQty(item.id,-1)}>−</button><span style={{fontWeight:500,fontSize:'.85rem',minWidth:16,textAlign:'center'}}>{item.qty}</span><button className="qty-btn" onClick={()=>onQty(item.id,1)}>+</button></div></div><div style={{textAlign:'right'}}><p style={{fontWeight:600,fontSize:'.9rem'}}>${(item.price*item.qty).toFixed(2)}</p><button onClick={()=>onRemove(item.id)} style={{background:'none',border:'none',color:'rgba(255,255,255,.22)',fontSize:'.7rem',cursor:'pointer',marginTop:5,transition:'color .15s',padding:0}} onMouseOver={e=>e.target.style.color='rgba(255,80,80,.7)'} onMouseOut={e=>e.target.style.color='rgba(255,255,255,.22)'}>remove</button></div></div>);})}</div>{cart.length>0&&(<div style={{padding:'16px 24px 24px',borderTop:'0.6px solid rgba(255,255,255,.07)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:14}}><span style={{color:'rgba(255,255,255,.35)',fontSize:'.85rem'}}>{t.total}</span><span style={{fontWeight:700,fontSize:'1.3rem',letterSpacing:'-.03em'}}>${total.toFixed(2)}</span></div><button className="pill-solid" style={{width:'100%',borderRadius:12,padding:'13px',fontSize:'.88rem'}} onClick={onCheckout}>{t.checkout} — ${total.toFixed(2)}</button></div>)}</div></>);
+}
+
+/* ══ NAVBAR ══ */
+function Navbar({onAuth,user,n,onCart,page,setPage,lang,setLang,t}){
+  const[scrolled,setScrolled]=useState(false);
+  useEffect(()=>{const h=()=>setScrolled(window.scrollY>20);window.addEventListener('scroll',h);return()=>window.removeEventListener('scroll',h);},[]);
+  return(<div className="glass-nav" style={{background:scrolled?'rgba(0,0,0,.8)':'rgba(0,0,0,.5)',transition:'background .3s'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'15px 40px',maxWidth:1200,margin:'0 auto'}}><div style={{display:'flex',alignItems:'center',gap:9,flexShrink:0,cursor:'pointer'}} onClick={()=>setPage('home')}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:26,height:26,objectFit:'contain'}} alt="Falcon"/><span style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.03em'}}>falcon</span></div><div className="nav-mid" style={{display:'flex',alignItems:'center',gap:0}}>{[{label:t.nav.home,pg:'home'},{label:t.nav.about,pg:'about'},{label:t.nav.terms,pg:'terms'}].map(({label,pg})=>(<button key={pg} className={`navlink ${page===pg?'active-link':''}`} onClick={()=>setPage(pg)}>{label}</button>))}</div><div style={{display:'flex',alignItems:'center',gap:8}}><button className="lang-btn" onClick={()=>{const nl=lang==='en'?'ar':'en';setLang(nl);document.body.className=`lang-${nl}`;}}>{lang==='en'?'🇸🇦 AR':'🇺🇸 EN'}</button><CartIcon count={n} onClick={onCart}/>{user?(<div className="uchip"><div className="uavatar">{user.name[0].toUpperCase()}</div><span style={{fontSize:'.8rem',fontWeight:500,color:'rgba(255,255,255,.7)',letterSpacing:'-.01em'}}>Hey, {user.name.split(' ')[0]}</span></div>):(<button className="pill-ghost" style={{padding:'8px 18px',fontSize:'.8rem'}} onClick={()=>onAuth('signup')}>{t.signUp}</button>)}</div></div></div>);
+}
+
+/* ══ PAGE VIDEO BG ══ */
+function PageVideoBg(){
+  return(<div style={{position:'absolute',inset:0,overflow:'hidden',zIndex:0,pointerEvents:'none'}}><div style={{position:'absolute',top:0,bottom:0,left:200,right:0,overflow:'hidden'}}><HLSVideo src="https://stream.mux.com/s8pMcOvMQXc4GD6AX4e1o01xFogFxipmuKltNfSYza0200.m3u8" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',transform:'scaleX(1.2)',transformOrigin:'left center',opacity:.26}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:160,background:'linear-gradient(transparent,#000)',zIndex:2}}/><div style={{position:'absolute',top:0,bottom:0,left:0,width:200,background:'linear-gradient(90deg,#000,transparent)',zIndex:2}}/></div><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.65)'}}/></div>);
+}
+
+/* ══ GENERIC CARD CONTENT ══ */
+function CardBody({item,feats,price,billing,onAdd,onBuy,t,accentBorder='rgba(40,80,255,.14)',accentDot='rgba(80,140,255,.7)',tagBg='rgba(40,80,255,.12)',tagBorder='rgba(40,80,255,.25)',tagColor='rgba(100,150,255,.85)',btnBorder='rgba(255,255,255,.18)',iconBorder='rgba(40,100,255,.3)',iconBg='rgba(20,60,255,.08)'}){
+  const l=t===T.ar?'ar':'en';
+  const name=typeof item.name==='object'?item.name[l]:item.name;
+  const desc=typeof item.desc==='object'?item.desc[l]:item.desc;
+  const featsArr=Array.isArray(feats)?feats:(feats?feats[l]:[]);
+  const billStr=billing?billing[l]:'';
+  return(
+    <div style={{padding:'22px 22px 20px',flex:1,display:'flex',flexDirection:'column'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <ProdIcon item={item} size={40} radius={11} borderColor={iconBorder} bg={iconBg}/>
+        <span style={{background:tagBg,border:`0.6px solid ${tagBorder}`,borderRadius:100,padding:'3px 10px',fontSize:'.7rem',fontWeight:600,color:tagColor}}>${price}{billStr}</span>
+      </div>
+      <h3 style={{fontWeight:600,fontSize:'1rem',letterSpacing:'-.025em',marginBottom:7}}>{name}</h3>
+      <p style={{color:'rgba(255,255,255,.4)',fontSize:'.79rem',lineHeight:1.75,marginBottom:16,fontWeight:300,flex:1}}>{desc}</p>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px 7px',marginBottom:18}}>
+        {featsArr.map(f=>(<div key={f} style={{display:'flex',alignItems:'center',gap:6,background:'rgba(255,255,255,.03)',border:`0.6px solid ${accentBorder}`,borderRadius:8,padding:'4px 9px'}}><span style={{width:3,height:3,borderRadius:'50%',background:accentDot,flexShrink:0,display:'inline-block'}}/><span style={{fontSize:'.71rem',color:'rgba(255,255,255,.45)',fontWeight:300}}>{f}</span></div>))}
+      </div>
+      <div style={{borderTop:`0.6px solid ${accentBorder}`,paddingTop:14,display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+        <div><span style={{fontWeight:700,fontSize:'1.2rem',letterSpacing:'-.04em'}}>${price}</span>{billStr&&<span style={{fontSize:'.7rem',color:'rgba(255,255,255,.25)',marginLeft:4,fontWeight:300}}>{billStr}</span>}</div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="pill-ghost" style={{padding:'6px 12px',fontSize:'.72rem',borderRadius:10,borderColor:btnBorder}} onClick={()=>onAdd(item)}>{t.addToCart}</button>
+          <button className="pill-solid" style={{padding:'6px 14px',fontSize:'.72rem',borderRadius:10}} onClick={()=>onBuy(item)}>{t.buyNow}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══ BOTS SECTION ══ */
+function BotsSection({t,onAdd,onBuy}){
+  const l=t===T.ar?'ar':'en';
+  return(<section id="products" style={{padding:'130px 40px 110px',position:'relative',background:'#000'}}><div style={{position:'absolute',top:'8%',left:'50%',transform:'translateX(-50%)',width:800,height:400,background:'radial-gradient(ellipse,rgba(20,60,255,.09) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/><Particles count={10} color="rgba(60,110,255,.4)"/><div style={{textAlign:'center',marginBottom:72,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.botsLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(28px,4vw,52px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:16,marginTop:14}}>{t.botsTitle}</h2><p style={{color:'rgba(255,255,255,.38)',fontSize:'.9rem',maxWidth:380,margin:'0 auto',lineHeight:1.8,fontWeight:300}}>{t.botsDesc}</p></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:20,maxWidth:1080,margin:'0 auto',position:'relative',zIndex:3}}>{BOTS.map(p=>(<div key={p.id} className="pcard"><div className="pcard-top"/><CardBody item={p} feats={p.feats} price={p.price} onAdd={onAdd} onBuy={onBuy} t={t}/></div>))}</div><div style={{maxWidth:1080,margin:'48px auto 0',display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'22px 44px',position:'relative',zIndex:3}}>{t.features&&t.features.map((lb,i)=>(<div key={i} style={{display:'flex',alignItems:'center',gap:9}}><span style={{color:'rgba(80,130,255,.6)',fontSize:'.9rem'}}>{['⚡','∞','◎','↻'][i]}</span><span style={{fontSize:'.79rem',color:'rgba(255,255,255,.35)',fontWeight:300}}>{lb}</span></div>))}</div></section>);
+}
+
+/* ══ APPS SECTION ══ */
+function AppsSection({t,onAdd,onBuy}){
+  const l=t===T.ar?'ar':'en';
+  return(<section style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(255,255,255,.06)'}}><div style={{position:'absolute',top:'15%',left:'50%',transform:'translateX(-50%)',width:700,height:350,background:'radial-gradient(ellipse,rgba(100,40,255,.08) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/><Particles count={8} color="rgba(120,80,255,.4)"/><div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex',borderColor:'rgba(120,80,255,.25)',color:'rgba(160,120,255,.7)'}}>{t.appsLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(28px,4vw,52px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.appsTitle}</h2><p style={{fontFamily:'Cairo',fontSize:'clamp(15px,2.2vw,20px)',color:'rgba(200,180,255,.8)',maxWidth:640,margin:'0 auto 6px',lineHeight:1.7,fontWeight:500,direction:'rtl'}}>{t.appsAr}</p>{l==='en'&&<p style={{color:'rgba(255,255,255,.32)',fontSize:'.85rem',maxWidth:400,margin:'10px auto 0',lineHeight:1.8,fontWeight:300}}>{t.appsDesc}</p>}</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20,maxWidth:700,margin:'0 auto',position:'relative',zIndex:3}}>{APPS.map(p=>(<div key={p.id} className="acard"><div className="acard-top"/><CardBody item={p} feats={p.feats} price={p.price} billing={p.billing} onAdd={onAdd} onBuy={onBuy} t={t} accentBorder="rgba(100,60,255,.14)" accentDot="rgba(160,120,255,.7)" tagBg="rgba(120,80,255,.12)" tagBorder="rgba(120,80,255,.25)" tagColor="rgba(180,140,255,.85)" btnBorder="rgba(120,80,255,.3)" iconBorder="rgba(100,60,255,.3)" iconBg="rgba(60,20,200,.08)"/></div>))}</div></section>);
+}
+
+/* ══ DISCORD SECTION ══ */
+function DiscordSection({t,onAdd,onBuy}){
+  const l=t===T.ar?'ar':'en';
+  return(<section style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(88,101,242,.15)'}}><div style={{position:'absolute',top:'10%',left:'50%',transform:'translateX(-50%)',width:700,height:350,background:'radial-gradient(ellipse,rgba(88,101,242,.1) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/><Particles count={8} color="rgba(88,101,242,.4)"/><div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex',borderColor:'rgba(88,101,242,.3)',color:'rgba(130,145,255,.8)'}}>{t.discordLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(26px,4vw,48px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.discordTitle}</h2><p style={{color:'rgba(255,255,255,.38)',fontSize:'.9rem',maxWidth:400,margin:'0 auto',lineHeight:1.8,fontWeight:300}}>{t.discordDesc}</p></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16,maxWidth:1000,margin:'0 auto',position:'relative',zIndex:3}}>{DISCORD_ITEMS.map(p=>(<div key={p.id} className="dcard"><div style={{height:2,background:'linear-gradient(90deg,transparent,rgba(88,101,242,.7),transparent)'}}/><div style={{padding:'20px 20px 18px',flex:1,display:'flex',flexDirection:'column'}}>{p.badge&&<div style={{marginBottom:10}}><span style={{background:'rgba(88,101,242,.25)',border:'0.6px solid rgba(88,101,242,.45)',borderRadius:100,padding:'3px 10px',fontSize:'.68rem',fontWeight:600,color:'rgba(160,170,255,.9)'}}>{p.badge[l]}</span></div>}<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}><ProdIcon item={p} size={38} radius={10} borderColor="rgba(88,101,242,.35)" bg="rgba(88,101,242,.12)"/><span style={{fontWeight:700,fontSize:'.95rem',color:'rgba(140,155,255,.9)',letterSpacing:'-.01em'}}>${p.price}<span style={{fontWeight:300,color:'rgba(255,255,255,.3)',fontSize:'.72rem'}}>{p.billing[l]}</span></span></div><h3 style={{fontWeight:600,fontSize:'.92rem',letterSpacing:'-.02em',marginBottom:6}}>{p.name[l]}</h3><p style={{color:'rgba(255,255,255,.38)',fontSize:'.77rem',lineHeight:1.7,marginBottom:14,fontWeight:300,flex:1}}>{p.desc[l]}</p><div style={{display:'flex',gap:6,marginTop:'auto'}}><button className="pill-ghost" style={{padding:'6px 12px',fontSize:'.71rem',borderRadius:10,flex:1,borderColor:'rgba(88,101,242,.3)'}} onClick={()=>onAdd(p)}>{t.addToCart}</button><button style={{padding:'6px 14px',fontSize:'.71rem',borderRadius:10,background:'#5865F2',border:'none',color:'#fff',cursor:'pointer',fontWeight:600,transition:'all .2s',flexShrink:0}} onMouseOver={e=>e.currentTarget.style.background='#4752C4'} onMouseOut={e=>e.currentTarget.style.background='#5865F2'} onClick={()=>onBuy(p)}>{t.buyNow}</button></div></div></div>))}</div></section>);
+}
+
+/* ══ FAQ ══ */
+function FAQSection({t}){
+  const[open,setOpen]=useState(null);
+  return(<section style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(255,255,255,.06)'}}><div style={{position:'absolute',top:'20%',left:'50%',transform:'translateX(-50%)',width:600,height:300,background:'radial-gradient(ellipse,rgba(40,80,255,.07) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/><Particles count={6} color="rgba(80,120,255,.35)"/><div style={{textAlign:'center',marginBottom:56,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.faqLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(26px,4vw,48px)',letterSpacing:'-.04em',lineHeight:1.08,marginTop:14}}>{t.faqTitle}</h2></div><div style={{maxWidth:700,margin:'0 auto',display:'flex',flexDirection:'column',gap:10,position:'relative',zIndex:3}}>{t.faqItems.map((item,i)=>(<div key={i} className={`faq-item ${open===i?'open':''}`}><button className="faq-q" onClick={()=>setOpen(open===i?null:i)}><span style={{fontWeight:500,fontSize:'.95rem',letterSpacing:'-.015em',textAlign:t===T.ar?'right':'left',flex:1}}>{item.q}</span><span className="faq-arrow">▾</span></button><div className="faq-ans"><p style={{fontSize:'.85rem',color:'rgba(255,255,255,.55)',lineHeight:1.78,fontWeight:300}}>{item.a}</p></div></div>))}</div></section>);
+}
+
+/* ══ REVIEWS ══ */
+function ReviewForm({onSubmit,t}){
+  const[nm,setNm]=useState('');const[role,setRole]=useState('');const[txt,setTxt]=useState('');const[stars,setStars]=useState(0);const[done,setDone]=useState(false);const[err,setErr]=useState('');
+  const submit=()=>{setErr('');if(!nm.trim())return setErr('Please enter your name.');if(stars===0)return setErr('Please select a rating.');if(txt.trim().length<10)return setErr('Write at least 10 characters.');onSubmit({id:`u_${Date.now()}`,name:nm.trim(),role:role.trim()||'Falcon User',av:nm.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),stars,text:txt.trim(),date:new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'})});setDone(true);};
+  if(done)return(<div style={{border:'0.6px solid rgba(40,100,255,.3)',borderRadius:20,padding:'32px',textAlign:'center',background:'rgba(20,50,160,.07)'}}><div style={{fontSize:'2rem',marginBottom:12}}>🎉</div><p style={{fontWeight:600,fontSize:'1rem',marginBottom:6}}>{t.reviewThanks}</p><p style={{color:'rgba(255,255,255,.4)',fontSize:'.85rem',fontWeight:300}}>{t.reviewAdded}</p></div>);
+  return(<div style={{border:'0.6px solid rgba(255,255,255,.08)',borderRadius:20,padding:'28px',background:'rgba(255,255,255,.015)',position:'relative',overflow:'hidden'}}><div style={{position:'absolute',top:0,left:0,right:0,height:'0.6px',background:'linear-gradient(90deg,transparent,rgba(80,140,255,.4),transparent)'}}/><h3 style={{fontWeight:600,fontSize:'1rem',letterSpacing:'-.025em',marginBottom:4}}>{t.leaveReview}</h3><p style={{color:'rgba(255,255,255,.35)',fontSize:'.8rem',fontWeight:300,marginBottom:18,lineHeight:1.5}}>{t.reviewShare}</p><div style={{display:'flex',flexDirection:'column',gap:11}}><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><input className="inp" placeholder={t.reviewName} value={nm} onChange={e=>setNm(e.target.value)}/><input className="inp" placeholder={t.reviewRole} value={role} onChange={e=>setRole(e.target.value)}/></div><div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',background:'rgba(255,255,255,.03)',border:'0.6px solid rgba(255,255,255,.08)',borderRadius:12}}><span style={{fontSize:'.8rem',color:'rgba(255,255,255,.35)',fontWeight:300}}>{t.reviewRating}</span><StarPicker value={stars} onChange={setStars}/><span style={{fontSize:'.78rem',color:'rgba(255,255,255,.25)',marginLeft:'auto'}}>{['','Poor','Fair','Good','Great','Excellent'][stars]||''}</span></div><textarea className="inp" placeholder={t.reviewText} value={txt} onChange={e=>setTxt(e.target.value)} rows={3}/>{err&&<p style={{color:'rgba(255,80,80,.8)',fontSize:'.78rem'}}>↳ {err}</p>}<button className="pill-solid" style={{borderRadius:12,padding:'11px 22px',fontSize:'.87rem',alignSelf:'flex-start'}} onClick={submit}>{t.reviewSubmit}</button></div></div>);
+}
+
+/* ══ JSONBIN CONFIG ══
+   لتفعيل التقييمات المشتركة:
+   1. روح https://jsonbin.io وسجل حساب مجاني
+   2. أنشئ Bin جديد بهذا الـ JSON: {"reviews":[]}
+   3. من الـ Bin اللي أنشأته، انسخ الـ BIN_ID من الـ URL
+   4. من Account > API Keys، أنشئ مفتاح وانسخه
+   5. حطهم هنا تحت
+═══════════════════════════════════════════ */
+const JSONBIN_CONFIG = {
+  binId:  'YOUR_BIN_ID',   // مثال: 64ab12cd...
+  apiKey: 'YOUR_API_KEY',  // مثال: $2a$10$...
+};
+
+async function fetchSharedReviews(){
+  if(JSONBIN_CONFIG.binId==='YOUR_BIN_ID') return [];
+  try{
+    const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`,{
+      headers:{'X-Master-Key':JSONBIN_CONFIG.apiKey,'X-Bin-Meta':'false'}
+    });
+    const d=await r.json();
+    return Array.isArray(d.reviews)?d.reviews:[];
+  }catch(e){ return []; }
+}
+
+async function pushSharedReview(reviews){
+  if(JSONBIN_CONFIG.binId==='YOUR_BIN_ID') return;
+  try{
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_CONFIG.apiKey},
+      body:JSON.stringify({reviews})
+    });
+  }catch(e){}
+}
+
+function Feedback({t}){
+  const[sharedReviews,setSharedReviews]=useState([]);
+  const[loading,setLoading]=useState(true);
+  useEffect(()=>{
+    fetchSharedReviews().then(r=>{setSharedReviews(r);setLoading(false);});
+  },[]);
+  const allReviews=[...SEED_REVIEWS,...sharedReviews];
+  const addReview=useCallback(async r=>{
+    const updated=[...sharedReviews,r];
+    setSharedReviews(updated);
+    await pushSharedReview(updated);
+  },[sharedReviews]);
+  const avg=allReviews.length?(allReviews.reduce((s,r)=>s+r.stars,0)/allReviews.length).toFixed(1):'5.0';
+  return(<section style={{padding:'130px 40px 100px',borderTop:'0.6px solid rgba(255,255,255,.06)',position:'relative',overflow:'hidden',background:'#000'}}><div style={{position:'absolute',inset:0,overflow:'hidden',zIndex:0}}><HLSVideo src="https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:.16}}/><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.72)'}}/><div style={{position:'absolute',top:0,left:0,right:0,height:160,background:'linear-gradient(#000,transparent)'}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:160,background:'linear-gradient(transparent,#000)'}}/></div><Particles count={12} color="rgba(80,130,255,.4)"/><div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex'}}>{t.reviewsLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(26px,4vw,48px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.reviewsTitle}</h2><p style={{color:'rgba(255,255,255,.38)',fontSize:'.9rem',maxWidth:320,margin:'0 auto',lineHeight:1.8,fontWeight:300}}>{t.reviewsDesc}</p><div style={{display:'inline-flex',alignItems:'center',gap:12,marginTop:22,border:'0.6px solid rgba(255,255,255,.08)',borderRadius:100,padding:'9px 20px',background:'rgba(0,0,0,.4)',backdropFilter:'blur(8px)'}}><Stars n={5} sz={11}/><span style={{width:'0.6px',height:14,background:'rgba(255,255,255,.1)',display:'inline-block'}}/><span style={{fontSize:'.8rem',color:'rgba(255,255,255,.5)',fontWeight:400}}>{avg} · {allReviews.length} {t.reviewsAvg}</span></div></div>{loading?(<div style={{textAlign:'center',padding:'40px 0',position:'relative',zIndex:3}}><div style={{width:28,height:28,border:'2px solid rgba(255,255,255,.08)',borderTop:'2px solid rgba(100,150,255,.6)',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto'}}></div></div>):(<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:14,maxWidth:1020,margin:'0 auto',position:'relative',zIndex:3}}>{allReviews.map(r=>(<div key={r.id} className="rcard"><div style={{marginBottom:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}><Stars n={r.stars} sz={11}/>{r.id.startsWith('u_')&&<span style={{fontSize:'.65rem',color:'rgba(100,150,255,.7)',border:'0.6px solid rgba(60,100,255,.3)',borderRadius:100,padding:'2px 8px',fontWeight:500}}>New</span>}</div><p style={{fontSize:'.84rem',lineHeight:1.78,color:'rgba(255,255,255,.6)',fontWeight:300,marginBottom:18}}>"{r.text}"</p><div style={{display:'flex',alignItems:'center',gap:10}}><div style={{width:30,height:30,borderRadius:'50%',background:'rgba(255,255,255,.06)',border:'0.6px solid rgba(255,255,255,.09)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:600,flexShrink:0}}>{r.av}</div><div style={{flex:1,minWidth:0}}><p style={{fontWeight:500,fontSize:'.8rem',letterSpacing:'-.015em',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.name}</p><p style={{color:'rgba(100,150,255,.6)',fontSize:'.72rem',marginTop:1,fontWeight:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.role||'Falcon User'}</p></div><span style={{fontSize:'.7rem',color:'rgba(255,255,255,.2)',fontWeight:300,flexShrink:0}}>{r.date}</span></div></div>))}</div>)}<div style={{maxWidth:600,margin:'44px auto 0',position:'relative',zIndex:3}}><ReviewForm onSubmit={addReview} t={t}/></div></section>);
+}
+/* ══ HOME PAGE ══ */
+function HomePage({t,onAuth,onAdd,onBuy}){
+  const l=t===T.ar?'ar':'en';
+  return(<div><section style={{position:'relative',overflow:'hidden',minHeight:'100vh',background:'#000',paddingTop:70}}><VideoBg/><AnimatedOrbs/><GridLines/><Particles count={22} color="rgba(70,130,255,.5)"/><div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.42)',zIndex:3}}/><div style={{position:'absolute',bottom:0,left:0,right:0,height:200,background:'linear-gradient(transparent,#000)',zIndex:4}}/><div style={{position:'relative',zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:'14vh',paddingBottom:'14vh',paddingLeft:24,paddingRight:24,textAlign:'center'}}><p className="a1" style={{fontStyle:t===T.en?'italic':'normal',fontWeight:300,fontSize:'clamp(16px,2.5vw,24px)',lineHeight:1.4,color:'rgba(255,255,255,.5)',marginBottom:6,maxWidth:600}}>{t.heroSub}</p><p className="a1" style={{fontSize:'.72rem',color:'rgba(255,255,255,.22)',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400,marginBottom:26}}>{t.heroWelcome}</p><h1 className="a2" style={{fontWeight:600,fontSize:'clamp(56px,13vw,118px)',lineHeight:.98,letterSpacing:'-.045em',background:'linear-gradient(155deg,#fff 25%,rgba(160,200,255,.85) 60%,rgba(60,110,255,.55) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Falcon</h1><p className="a3" style={{fontSize:'.92rem',lineHeight:1.85,maxWidth:400,marginTop:18,color:'rgba(255,255,255,.42)',fontWeight:300}}>{t.heroDesc}</p><div className="a4 hero-btns" style={{display:'flex',alignItems:'center',gap:10,marginTop:34,flexWrap:'wrap',justifyContent:'center'}}><button className="pill-ghost" onClick={()=>document.getElementById('products').scrollIntoView({behavior:'smooth'})}>{t.browseProducts}</button><button className="pill-discord" onClick={()=>window.open('https://discord.gg/fcn','_blank')}><DiscordSvg/>{t.discord}</button><button className="pill-ghost" style={{gap:8}} onClick={()=>window.open('https://www.youtube.com/@Falconofficial123/videos','_blank')}><YoutubeSvg/>{t.youtube}</button></div><div className="a5" style={{marginTop:48,display:'flex',flexDirection:'column',alignItems:'center',gap:6,opacity:.22}}><span style={{fontSize:'.66rem',letterSpacing:'.14em',textTransform:'uppercase',fontWeight:400}}>{t.scroll}</span><div style={{width:.6,height:28,background:'linear-gradient(180deg,rgba(255,255,255,.7),transparent)',animation:'floatY 2s ease-in-out infinite'}}/></div></div></section><div style={{padding:'40px 40px',borderTop:'0.6px solid rgba(255,255,255,.06)',borderBottom:'0.6px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:32,maxWidth:900,margin:'0 auto'}}><span style={{flexShrink:0,fontSize:'.7rem',color:'rgba(255,255,255,.18)',letterSpacing:'.08em',textTransform:'uppercase',fontWeight:400,whiteSpace:'nowrap'}}>{t.trustedBy}</span><Marquee/></div><BotsSection t={t} onAdd={onAdd} onBuy={onBuy}/><AppsSection t={t} onAdd={onAdd} onBuy={onBuy}/><DiscordSection t={t} onAdd={onAdd} onBuy={onBuy}/><FAQSection t={t}/><Feedback t={t}/></div>);
+}
+
+/* ══ ABOUT / TERMS PAGES ══ */
+function AboutPage({setPage,t}){
+  const l=t===T.ar?'ar':'en';
+  return(<div style={{position:'relative',minHeight:'100vh',background:'#000',overflow:'hidden',paddingTop:70}}><PageVideoBg/><AnimatedOrbs/><GridLines/><Particles count={18} color="rgba(70,120,255,.45)"/><div style={{position:'relative',zIndex:10,maxWidth:780,margin:'0 auto',padding:'100px 40px 100px'}}><button onClick={()=>setPage('home')} style={{background:'none',border:'none',color:'rgba(255,255,255,.3)',cursor:'pointer',fontFamily:'inherit',fontSize:'.78rem',display:'flex',alignItems:'center',gap:6,marginBottom:52,transition:'color .2s',letterSpacing:'.06em',textTransform:'uppercase',padding:0}} onMouseOver={e=>e.currentTarget.style.color='rgba(255,255,255,.7)'} onMouseOut={e=>e.currentTarget.style.color='rgba(255,255,255,.3)'}>← Back</button><span className="sec-badge" style={{marginBottom:24,display:'inline-flex'}}>{t.nav.about}</span><h1 style={{fontWeight:600,fontSize:'clamp(40px,7vw,78px)',letterSpacing:'-.045em',lineHeight:.98,marginBottom:20,marginTop:10,background:'linear-gradient(155deg,#fff 25%,rgba(150,190,255,.8) 65%,rgba(50,90,255,.5) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'revealUp .9s .15s both'}}>{l==='ar'?'فريق ميثيك\nيصنع الأفضل.':'Built by Mythic.\nPowered by passion.'}</h1><div style={{height:'0.6px',background:'linear-gradient(90deg,rgba(50,90,255,.55),rgba(255,255,255,.15),transparent)',marginBottom:44,transformOrigin:'left',animation:'lineGrow .8s .45s both'}}/><div style={{display:'flex',flexDirection:'column',gap:24,animation:'revealUp .9s .4s both'}}><p style={{fontSize:'clamp(.95rem,1.7vw,1.12rem)',lineHeight:1.9,color:'rgba(255,255,255,.7)',fontWeight:300}}>{l==='ar'?<>فالكون، من <strong style={{color:'#fff',fontWeight:600}}>ميثيك</strong>، فريق ناشئ متخصص في بناء بوتات ديسكورد عالية الجودة تعزز تجربة السيرفرات وتطورها.</>:<>Falcon, by <strong style={{color:'#fff',fontWeight:500}}>Mythic</strong>, is a rising team focused on building high-quality Discord bots that enhance and streamline server experiences.</>}</p><p style={{fontSize:'clamp(.9rem,1.5vw,1rem)',lineHeight:1.9,color:'rgba(255,255,255,.45)',fontWeight:300}}>{l==='ar'?'نتخصص في التطوير والألعاب، نجمع المهارات التقنية مع رؤية واضحة لإنشاء أدوات موثوقة وفعّالة.':'We specialize in development and gaming, combining technical skill with a clear vision to create reliable and impactful tools.'}</p></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:1,marginTop:60,border:'0.6px solid rgba(30,70,255,.2)',borderRadius:20,overflow:'hidden',animation:'revealUp .9s .6s both'}}>{[['3+',l==='ar'?'منتجات':'Products'],['24/7',l==='ar'?'ضمان':'Uptime'],['100+',l==='ar'?'سيرفرات':'Servers'],['2026',l==='ar'?'التأسيس':'Founded']].map(([val,label],i)=>(<div key={i} style={{padding:'24px 20px',background:'rgba(20,50,200,.04)',borderRight:i<3?'0.6px solid rgba(30,70,255,.12)':'none',transition:'background .2s'}} onMouseOver={e=>e.currentTarget.style.background='rgba(30,70,200,.08)'} onMouseOut={e=>e.currentTarget.style.background='rgba(20,50,200,.04)'}><p style={{fontWeight:700,fontSize:'1.7rem',letterSpacing:'-.04em',marginBottom:4,background:'linear-gradient(135deg,#fff,rgba(110,160,255,.8))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>{val}</p><p style={{fontSize:'.73rem',color:'rgba(255,255,255,.3)',fontWeight:300}}>{label}</p></div>))}</div><div style={{marginTop:52,display:'flex',gap:10,flexWrap:'wrap',animation:'revealUp .9s .75s both'}}><button className="pill-discord" onClick={()=>window.open('https://discord.gg/fcn','_blank')}><DiscordSvg/>{t.discord}</button><button className="pill-ghost" style={{gap:8}} onClick={()=>window.open('https://www.youtube.com/@Falconofficial123/videos','_blank')}><YoutubeSvg/>{t.youtube}</button><button className="pill-ghost" onClick={()=>setPage('home')}>{l==='ar'?'استكشف المنتجات ←':'Explore products →'}</button></div></div></div>);
+}
+
+const TERMS_DATA=[
+  {num:'1',title:{en:'Refunds',ar:'الاسترداد'},icon:'◈',items:{en:['No refunds — only replacements.'],ar:['لا يوجد استرداد — فقط استبدال.']}},
+  {num:'2',title:{en:'Warranty',ar:'الضمان'},icon:'⊛',items:{en:['Spotify Premium: 1 week.','Minecraft Accounts: 1 week.','YouTube / Prime Video / Canva / CapCut Pro FA / ChatGPT / Apple Music (all FA): 23 days.','Gemini Pro + Google AI PRO 2TB: 3 months.','Nitro warranty: 1 hour.'],ar:['Spotify Premium: أسبوع.','حسابات Minecraft: أسبوع.','YouTube / Prime Video / Canva / CapCut / ChatGPT / Apple Music: 23 يومًا.','Gemini Pro + Google AI PRO 2TB: 3 أشهر.','ضمان Nitro: ساعة.']}},
+  {num:'3',title:{en:'Verification',ar:'التحقق'},icon:'◉',items:{en:['To replace Nitro tokens/codes we need a recording showing the code was invalid.','If your PayPal is blocked after purchase, we cannot refund or replace.'],ar:['لاستبدال رموز Nitro نحتاج لتسجيل يُثبت أن الرمز غير صالح.','إذا أُغلق PayPal بعد الشراء، لا يمكننا الاسترداد أو الاستبدال.']}},
+  {num:'4',title:{en:'Usage & Conduct',ar:'الاستخدام'},icon:'⬡',items:{en:['No warranty on Nitro/Spotify during wave revokes.','Changing FA credentials voids replacement rights.','No warranty in "Suppliers Contacts".','Buying = accepting all terms.'],ar:['لا ضمان على Nitro/Spotify خلال موجات الإلغاء.','تغيير بيانات FA يُلغي حقوق الاستبدال.','لا ضمان في "جهات اتصال الموردين".','الشراء = قبول جميع الشروط.']}},
+  {num:'5',title:{en:'Limitations',ar:'القيود'},icon:'⊘',items:{en:['All products for educational purposes only.'],ar:['جميع المنتجات لأغراض تعليمية فقط.']}},
+  {num:'6',title:{en:'Changes',ar:'التعديلات'},icon:'↻',items:{en:['We may update terms at any moment.'],ar:['يحق لنا تعديل الشروط في أي وقت.']}},
+  {num:'7',title:{en:'Liability',ar:'المسؤولية'},icon:'⊡',items:{en:['If you own a service we sell and want it removed, contact us.'],ar:['إذا كنت تملك خدمة نبيعها وتريد إزالتها، تواصل معنا.']}},
+];
+
+function TermsPage({setPage,t}){
+  const l=t===T.ar?'ar':'en';
+  return(<div style={{position:'relative',minHeight:'100vh',background:'#000',overflow:'hidden',paddingTop:70}}><PageVideoBg/><AnimatedOrbs/><GridLines/><Particles count={10} color="rgba(30,70,180,.5)"/><div style={{position:'relative',zIndex:10,maxWidth:820,margin:'0 auto',padding:'100px 40px 100px'}}><button onClick={()=>setPage('home')} style={{background:'none',border:'none',color:'rgba(255,255,255,.3)',cursor:'pointer',fontFamily:'inherit',fontSize:'.78rem',display:'flex',alignItems:'center',gap:6,marginBottom:52,transition:'color .2s',letterSpacing:'.06em',textTransform:'uppercase',padding:0}} onMouseOver={e=>e.currentTarget.style.color='rgba(255,255,255,.7)'} onMouseOut={e=>e.currentTarget.style.color='rgba(255,255,255,.3)'}>← Back</button><span className="sec-badge" style={{marginBottom:20,display:'inline-flex'}}>{l==='ar'?'قانوني':'Legal'}</span><h1 style={{fontWeight:600,fontSize:'clamp(36px,6vw,64px)',letterSpacing:'-.045em',lineHeight:.98,marginBottom:12,marginTop:10,background:'linear-gradient(155deg,#fff 30%,rgba(100,140,255,.75) 75%,rgba(30,70,200,.5) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',animation:'revealUp .9s .1s both'}}>{l==='ar'?'شروط الخدمة':'Terms of Service'}</h1><p style={{fontSize:'.88rem',color:'rgba(255,255,255,.38)',lineHeight:1.75,fontWeight:300,maxWidth:500,animation:'revealUp .9s .2s both'}}>{l==='ar'?'شراء أو استخدام منتجاتنا يعني قبولك للشروط أدناه.':'Purchasing or using our products means you accept the conditions below.'}</p><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:10,margin:'32px 0 42px',animation:'revealUp .9s .25s both'}}>{[['◈',l==='ar'?'لا استرداد':'No refunds',l==='ar'?'جميع المبيعات نهائية.':'All sales are final.'],['⊛',l==='ar'?'ضمان المنتج':'Warranty',l==='ar'?'لكل منتج نافذة دعم.':'Each product has its window.'],['◉',l==='ar'?'إثبات مطلوب':'Proof needed',l==='ar'?'مطلوب للاستبدال.':'Required for replacements.']].map(([ic,tt,d])=>(<div key={tt} style={{border:'0.6px solid rgba(30,70,200,.3)',borderRadius:14,padding:'16px',background:'rgba(15,35,110,.07)',transition:'all .2s'}} onMouseOver={e=>{e.currentTarget.style.borderColor='rgba(60,110,255,.5)';e.currentTarget.style.background='rgba(20,50,150,.12)'}} onMouseOut={e=>{e.currentTarget.style.borderColor='rgba(30,70,200,.3)';e.currentTarget.style.background='rgba(15,35,110,.07)'}}><span style={{fontSize:'.95rem',marginBottom:8,display:'block',color:'rgba(100,150,255,.7)'}}>{ic}</span><p style={{fontWeight:600,fontSize:'.82rem',letterSpacing:'-.01em',marginBottom:3,color:'rgba(255,255,255,.82)'}}>{tt}</p><p style={{fontSize:'.72rem',color:'rgba(255,255,255,.32)',fontWeight:300,lineHeight:1.5}}>{d}</p></div>))}</div><div style={{height:'0.6px',background:'linear-gradient(90deg,rgba(30,70,200,.5),rgba(255,255,255,.1),transparent)',marginBottom:42,animation:'lineGrow .8s .4s both',transformOrigin:'left'}}/><div style={{display:'flex',flexDirection:'column',gap:30,animation:'revealUp .9s .4s both'}}>{TERMS_DATA.map((sec,si)=>(<div key={si} style={{position:'relative'}}><div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}><div style={{width:28,height:28,borderRadius:8,border:'0.6px solid rgba(30,70,200,.38)',background:'rgba(15,40,140,.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.7rem',fontWeight:700,color:'rgba(90,140,255,.7)',flexShrink:0}}>{sec.num}</div><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'.9rem',opacity:.4}}>{sec.icon}</span><h2 style={{fontWeight:600,fontSize:'.95rem',letterSpacing:'-.02em',color:'rgba(255,255,255,.88)'}}>{sec.title[l]}</h2></div></div><div style={{paddingLeft:38,display:'flex',flexDirection:'column',gap:8}}>{sec.items[l].map((item,ii)=>(<div key={ii} style={{display:'flex',alignItems:'flex-start',gap:10}}><span style={{width:3,height:3,borderRadius:'50%',background:'rgba(50,90,255,.6)',flexShrink:0,marginTop:8,display:'inline-block'}}/><p style={{fontSize:'.82rem',color:'rgba(255,255,255,.52)',lineHeight:1.75,fontWeight:300}}>{item}</p></div>))}</div>{si<TERMS_DATA.length-1&&<div style={{position:'absolute',left:13,top:34,width:'0.6px',height:'calc(100% + 4px)',background:'linear-gradient(180deg,rgba(30,70,200,.22),transparent)'}}/>}</div>))}</div><div style={{marginTop:52,border:'0.6px solid rgba(255,255,255,.05)',borderRadius:12,padding:'16px 20px',background:'rgba(255,255,255,.015)',animation:'revealUp .9s .7s both'}}><p style={{fontSize:'.77rem',color:'rgba(255,255,255,.32)',lineHeight:1.7,fontWeight:300}}>{l==='ar'?'آخر تحديث':'Last updated'}: <strong style={{color:'rgba(255,255,255,.5)',fontWeight:500}}>March 2026</strong> · <button onClick={()=>window.open('https://discord.gg/fcn','_blank')} style={{background:'none',border:'none',color:'rgba(90,130,255,.75)',cursor:'pointer',fontFamily:'inherit',fontSize:'.77rem',padding:'0 4px',transition:'color .15s'}} onMouseOver={e=>e.target.style.color='rgba(130,170,255,.9)'} onMouseOut={e=>e.target.style.color='rgba(90,130,255,.75)'}>discord.gg/fcn</button></p></div><div style={{marginTop:22}}><button className="pill-ghost" style={{fontSize:'.82rem'}} onClick={()=>setPage('home')}>{l==='ar'?'← العودة للرئيسية':'← Back to home'}</button></div></div></div>);
+}
+
+/* ══ FOOTER ══ */
+function Footer({setPage,t}){
+  const l=t===T.ar?'ar':'en';
+  return(<footer style={{borderTop:'0.6px solid rgba(255,255,255,.06)',padding:'28px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:14,background:'#000'}}><div style={{display:'flex',alignItems:'center',gap:8}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:18,height:18,objectFit:'contain',opacity:.25}} alt=""/><span style={{fontWeight:500,fontSize:'.8rem',color:'rgba(255,255,255,.22)',letterSpacing:'-.02em'}}>falcon</span></div><div style={{display:'flex',gap:18,alignItems:'center',flexWrap:'wrap'}}>{[[t.nav.home,()=>setPage('home')],[t.nav.about,()=>setPage('about')],[t.nav.terms,()=>setPage('terms')]].map(([lbl,fn])=>(<button key={lbl} onClick={fn} style={{background:'none',border:'none',color:'rgba(255,255,255,.22)',cursor:'pointer',fontFamily:'inherit',fontSize:'.75rem',transition:'color .2s',padding:0}} onMouseOver={e=>e.target.style.color='rgba(255,255,255,.6)'} onMouseOut={e=>e.target.style.color='rgba(255,255,255,.22)'}>{lbl}</button>))}<p style={{color:'rgba(255,255,255,.14)',fontSize:'.72rem',fontWeight:300}}>© 2026 Falcon by Mythic.</p></div><div style={{display:'flex',gap:8}}><button className="pill-discord" style={{fontSize:'.74rem',padding:'7px 14px'}} onClick={()=>window.open('https://discord.gg/fcn','_blank')}><DiscordSvg/>{t.discord}</button><button className="pill-ghost" style={{fontSize:'.74rem',padding:'7px 14px',gap:6}} onClick={()=>window.open('https://www.youtube.com/@Falconofficial123/videos','_blank')}><YoutubeSvg/>{t.youtube}</button></div></footer>);
+}
+
+/* ══ APP ══ */
+function App(){
+  const[page,setPage]=useState('home');
+  const[lang,setLang]=useState('en');
+  const t=T[lang];
+  const[auth,setAuth]=useState(null);
+  const[authTab,setAuthTab]=useState('signup');
+  const[user,setUser]=useState(()=>{try{return JSON.parse(localStorage.getItem('fcn_s'))}catch{return null}});
+  const[cart,setCart]=useState([]);
+  const[cartOpen,setCartOpen]=useState(false);
+  const[checkout,setCheckout]=useState(null);
+  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'})},[page]);
+  const openAuth=tp=>{setAuthTab(tp);setAuth(true)};
+  const add=p=>{setCart(c=>{const e=c.find(i=>i.id===p.id);return e?c.map(i=>i.id===p.id?{...i,qty:i.qty+1}:i):[...c,{...p,qty:1}]});setCartOpen(true)};
+  const qty=(id,d)=>setCart(c=>c.map(i=>i.id===id?{...i,qty:Math.max(1,i.qty+d)}:i));
+  const rem=id=>setCart(c=>c.filter(i=>i.id!==id));
+  const cn=cart.reduce((s,i)=>s+i.qty,0);
+  const ct=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  return(<div style={{minHeight:'100vh',background:'#000',direction:t.dir}}><Navbar onAuth={openAuth} user={user} n={cn} onCart={()=>setCartOpen(true)} page={page} setPage={setPage} lang={lang} setLang={setLang} t={t}/>{page==='home'&&<HomePage t={t} onAuth={openAuth} onAdd={add} onBuy={p=>setCheckout({type:'product',product:p})}/>}{page==='about'&&<AboutPage setPage={setPage} t={t}/>}{page==='terms'&&<TermsPage setPage={setPage} t={t}/>}{page==='home'&&<Footer setPage={setPage} t={t}/>}{(page==='about'||page==='terms')&&(<div style={{borderTop:'0.6px solid rgba(255,255,255,.05)',padding:'20px 40px',textAlign:'center',zIndex:10,background:'#000'}}><p style={{color:'rgba(255,255,255,.12)',fontSize:'.72rem',fontWeight:300}}>© 2026 Falcon by Mythic. All rights reserved.</p></div>)}{auth&&<AuthModal onClose={()=>setAuth(false)} initTab={authTab} onLogin={u=>{setUser(u);setAuth(false)}} t={t}/>}{cartOpen&&<CartDrawer cart={cart} onClose={()=>setCartOpen(false)} onQty={qty} onRemove={rem} onCheckout={()=>{setCartOpen(false);setCheckout({type:'cart'})}} t={t}/>}{checkout&&<Checkout items={cart} total={ct} product={checkout.type==='product'?checkout.product:null} onClose={()=>setCheckout(null)} t={t}/>}</div>);
+}
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>
