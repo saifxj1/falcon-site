@@ -567,8 +567,67 @@ function Checkout({items,total,onClose,product,t,onSuccess}){
   const di=product?[{...product,qty:1}]:items;
   const dt=product?product.price:total;
   const l=t===T.ar?'ar':'en';
-  const url=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saifxj1%40gmail.com&currency_code=USD&amount=${dt.toFixed(2)}&item_name=Falcon+Products`;
-  return(<div className="overlay" style={{animation:'fadeIn .2s'}} onClick={onClose}><div className="modal" style={{maxWidth:450,animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}><button className="close-btn" onClick={onClose}>✕</button><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:22}}><img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:24,height:24,objectFit:'contain'}} alt=""/><span style={{fontWeight:600,fontSize:'.9rem',letterSpacing:'-.025em'}}>{t.checkout}</span></div><div style={{border:'0.6px solid rgba(255,255,255,.07)',borderRadius:14,padding:16,marginBottom:14}}><p style={{fontSize:'.68rem',textTransform:'uppercase',letterSpacing:'.12em',color:'rgba(255,255,255,.25)',marginBottom:14}}>{t.orderSummary}</p>{di.map((item,i)=>{const p=allItems.find(x=>x.id===item.id)||item;return(<div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderTop:i>0?'0.6px solid rgba(255,255,255,.05)':'none'}}><div style={{display:'flex',alignItems:'center',gap:10}}><ProdIcon item={p} size={34} radius={8} borderColor="rgba(255,255,255,.12)" bg="rgba(255,255,255,.04)"/><div><p style={{fontWeight:500,fontSize:'.84rem'}}>{typeof p.name==='object'?p.name[l]:p.name}</p><p style={{color:'rgba(255,255,255,.28)',fontSize:'.72rem',fontWeight:300}}>× {item.qty||1}</p></div></div><span style={{fontWeight:600,fontSize:'.88rem'}}>${(p.price*(item.qty||1)).toFixed(2)}</span></div>);})}<div style={{borderTop:'0.6px solid rgba(255,255,255,.09)',marginTop:12,paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{color:'rgba(255,255,255,.45)',fontSize:'.85rem'}}>{t.total}</span><span style={{fontWeight:700,fontSize:'1.25rem',letterSpacing:'-.03em'}}>${dt.toFixed(2)}</span></div></div><div style={{border:'0.6px solid rgba(255,255,255,.05)',borderRadius:12,padding:'10px 14px',marginBottom:14,display:'flex',gap:8}}><span style={{color:'rgba(255,255,255,.5)',flexShrink:0}}>⚡</span><p style={{fontSize:'.78rem',color:'rgba(255,255,255,.38)',lineHeight:1.65,fontWeight:300}}>{t.botDelivery}</p></div><button className="ppbtn" onClick={()=>{window.open(url,'_blank');if(onSuccess){const prod=product||(items&&items[0]);setTimeout(()=>onSuccess(prod),1500);}}}><svg width="17" height="17" viewBox="0 0 24 24" fill="#003087"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.58 2.977-2.553 6.003-7.498 6.003H11.13c-.524 0-.968.382-1.05.9l-1.343 8.514a.641.641 0 0 0 .633.74h4.27c.524 0 .968-.38 1.05-.9l.89-5.63c.083-.52.527-.9 1.05-.9h1.38c3.977 0 6.32-2.297 7.17-6.46.376-1.839.218-3.21-.958-3.98z"/></svg>{t.payWith} — ${dt.toFixed(2)}</button><p style={{textAlign:'center',marginTop:10,color:'rgba(255,255,255,.18)',fontSize:'.7rem',fontWeight:300}}>{t.secureCheckout}</p></div></div>);
+  const[waiting,setWaiting]=useState(false);
+  const prod=product||(di&&di[0]&&(allItems.find(x=>x.id===di[0].id)||di[0]))||null;
+  const itemName=encodeURIComponent(prod?(typeof prod.name==='object'?prod.name.en:prod.name):'Falcon Product');
+  /* PayPal return URL — after payment PayPal sends user back to site with ?paid=1 */
+  const returnUrl=encodeURIComponent(`${window.location.origin}${window.location.pathname}?paid=1&item=${itemName}`);
+  const cancelUrl=encodeURIComponent(`${window.location.origin}${window.location.pathname}?paid=0`);
+  const url=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saifxj1%40gmail.com&currency_code=USD&amount=${dt.toFixed(2)}&item_name=${itemName}&return=${returnUrl}&cancel_return=${cancelUrl}&rm=2`;
+  const openPayPal=()=>{
+    window.open(url,'_blank');
+    setWaiting(true);
+  };
+  const confirmPayment=()=>{
+    if(onSuccess)onSuccess(prod);
+  };
+  return(
+    <div className="overlay" style={{animation:'fadeIn .2s'}} onClick={!waiting?onClose:undefined}>
+      <div className="modal" style={{maxWidth:450,animation:'modalIn .3s cubic-bezier(.34,1.56,.64,1)'}} onClick={e=>e.stopPropagation()}>
+        {!waiting&&<button className="close-btn" onClick={onClose}>✕</button>}
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:22}}>
+          <img src="https://i.postimg.cc/4dZ51HLK/fcnlogonobc.png" style={{width:24,height:24,objectFit:'contain'}} alt=""/>
+          <span style={{fontWeight:600,fontSize:'.9rem',letterSpacing:'-.025em'}}>{waiting?'Complete Payment':t.checkout}</span>
+        </div>
+        {!waiting?(
+          <>
+            <div style={{border:'0.6px solid rgba(255,255,255,.07)',borderRadius:14,padding:16,marginBottom:14}}>
+              <p style={{fontSize:'.68rem',textTransform:'uppercase',letterSpacing:'.12em',color:'rgba(255,255,255,.25)',marginBottom:14}}>{t.orderSummary}</p>
+              {di.map((item,i)=>{const p=allItems.find(x=>x.id===item.id)||item;return(<div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderTop:i>0?'0.6px solid rgba(255,255,255,.05)':'none'}}><div style={{display:'flex',alignItems:'center',gap:10}}><ProdIcon item={p} size={34} radius={8} borderColor="rgba(255,255,255,.12)" bg="rgba(255,255,255,.04)"/><div><p style={{fontWeight:500,fontSize:'.84rem'}}>{typeof p.name==='object'?p.name[l]:p.name}</p><p style={{color:'rgba(255,255,255,.28)',fontSize:'.72rem',fontWeight:300}}>× {item.qty||1}</p></div></div><span style={{fontWeight:600,fontSize:'.88rem'}}>${(p.price*(item.qty||1)).toFixed(2)}</span></div>);})}
+              <div style={{borderTop:'0.6px solid rgba(255,255,255,.09)',marginTop:12,paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{color:'rgba(255,255,255,.45)',fontSize:'.85rem'}}>{t.total}</span>
+                <span style={{fontWeight:700,fontSize:'1.25rem',letterSpacing:'-.03em'}}>${dt.toFixed(2)}</span>
+              </div>
+            </div>
+            <div style={{border:'0.6px solid rgba(255,255,255,.05)',borderRadius:12,padding:'10px 14px',marginBottom:14,display:'flex',gap:8}}>
+              <span style={{color:'rgba(255,255,255,.5)',flexShrink:0}}>⚡</span>
+              <p style={{fontSize:'.78rem',color:'rgba(255,255,255,.38)',lineHeight:1.65,fontWeight:300}}>{t.botDelivery}</p>
+            </div>
+            <button className="ppbtn" onClick={openPayPal}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="#003087"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.58 2.977-2.553 6.003-7.498 6.003H11.13c-.524 0-.968.382-1.05.9l-1.343 8.514a.641.641 0 0 0 .633.74h4.27c.524 0 .968-.38 1.05-.9l.89-5.63c.083-.52.527-.9 1.05-.9h1.38c3.977 0 6.32-2.297 7.17-6.46.376-1.839.218-3.21-.958-3.98z"/></svg>
+              {t.payWith} — ${dt.toFixed(2)}
+            </button>
+            <p style={{textAlign:'center',marginTop:10,color:'rgba(255,255,255,.18)',fontSize:'.7rem',fontWeight:300}}>{t.secureCheckout}</p>
+          </>
+        ):(
+          /* ── WAITING SCREEN — shown after PayPal opens ── */
+          <div style={{textAlign:'center'}}>
+            <div style={{width:56,height:56,borderRadius:'50%',background:'rgba(255,196,57,.08)',border:'0.6px solid rgba(255,196,57,.3)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',animation:'pulse 2s ease-in-out infinite'}}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,196,57,.85)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <p style={{fontWeight:600,fontSize:'1rem',letterSpacing:'-.02em',marginBottom:8,color:'#fff'}}>Complete your payment</p>
+            <p style={{fontSize:'.83rem',color:'rgba(255,255,255,.4)',lineHeight:1.7,fontWeight:300,marginBottom:24}}>PayPal has opened in a new tab.<br/>Finish the payment there, then come back and click the button below.</p>
+            <button className="pill-solid" style={{width:'100%',borderRadius:12,padding:'13px',fontSize:'.9rem',marginBottom:10}} onClick={confirmPayment}>
+              ✓ I've completed payment
+            </button>
+            <button onClick={()=>setWaiting(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.28)',cursor:'pointer',fontFamily:'inherit',fontSize:'.78rem',width:'100%',padding:'8px',transition:'color .2s'}} onMouseOver={e=>e.target.style.color='rgba(255,255,255,.55)'} onMouseOut={e=>e.target.style.color='rgba(255,255,255,.28)'}>
+              ← Cancel and go back
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* ══ CART DRAWER ══ */
@@ -1399,7 +1458,18 @@ function App(){
   const[cart,setCart]=useState([]);
   const[cartOpen,setCartOpen]=useState(false);
   const[checkout,setCheckout]=useState(null);
-  const[purchaseSuccess,setPurchaseSuccess]=useState(null);
+  const[purchaseSuccess,setPurchaseSuccess]=useState(()=>{
+    /* Check if returning from PayPal with ?paid=1 */
+    try{
+      const params=new URLSearchParams(window.location.search);
+      if(params.get('paid')==='1'){
+        const itemName=decodeURIComponent(params.get('item')||'Falcon Product');
+        window.history.replaceState({},'',window.location.pathname);
+        return {name:{en:itemName,ar:itemName},id:'paypal_return'};
+      }
+    }catch{}
+    return null;
+  });
   const[allUserReviews,setAllUserReviews]=useState(()=>loadLocalReviews());
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'})},[page]);
   const openAuth=tp=>{setAuthTab(tp);setAuth(true)};
