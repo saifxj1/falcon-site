@@ -533,7 +533,26 @@ function BotsSection({t,onAdd,onBuy}){
 /* ══ APPS SECTION ══ */
 function AppsSection({t,onAdd,onBuy}){
   const l=t===T.ar?'ar':'en';
-  return(<section style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(255,255,255,.06)'}}><div style={{position:'absolute',top:'15%',left:'50%',transform:'translateX(-50%)',width:700,height:350,background:'radial-gradient(ellipse,rgba(100,40,255,.08) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/><Particles count={8} color="rgba(120,80,255,.4)"/><div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}><span className="sec-badge" style={{marginBottom:18,display:'inline-flex',borderColor:'rgba(120,80,255,.25)',color:'rgba(160,120,255,.7)'}}>{t.appsLabel}</span><h2 style={{fontWeight:600,fontSize:'clamp(28px,4vw,52px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.appsTitle}</h2><p style={{fontFamily:'Cairo',fontSize:'clamp(15px,2.2vw,20px)',color:'rgba(200,180,255,.8)',maxWidth:640,margin:'0 auto 6px',lineHeight:1.7,fontWeight:500,direction:'rtl'}}>{t.appsAr}</p>{l==='en'&&<p style={{color:'rgba(255,255,255,.32)',fontSize:'.85rem',maxWidth:400,margin:'10px auto 0',lineHeight:1.8,fontWeight:300}}>{t.appsDesc}</p>}</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20,maxWidth:700,margin:'0 auto',position:'relative',zIndex:3}}>{APPS.map(p=>(<div key={p.id} className="acard"><div className="acard-top"/><CardBody item={p} feats={p.feats} price={p.price} billing={p.billing} onAdd={onAdd} onBuy={onBuy} t={t} accentBorder="rgba(100,60,255,.14)" accentDot="rgba(160,120,255,.7)" tagBg="rgba(120,80,255,.12)" tagBorder="rgba(120,80,255,.25)" tagColor="rgba(180,140,255,.85)" btnBorder="rgba(120,80,255,.3)" iconBorder="rgba(100,60,255,.3)" iconBg="rgba(60,20,200,.08)"/></div>))}</div></section>);
+  return(
+    <section style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(255,255,255,.06)',overflow:'hidden'}}>
+      {/* FULLSCREEN BG VIDEO */}
+      <div style={{position:'absolute',inset:0,zIndex:0,overflow:'hidden'}}>
+        <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4"/>
+        {/* 50% black overlay */}
+        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.5)'}}/>
+      </div>
+      <Particles count={8} color="rgba(120,80,255,.4)"/>
+      <div style={{textAlign:'center',marginBottom:60,position:'relative',zIndex:3}}>
+        <span className="sec-badge" style={{marginBottom:18,display:'inline-flex',borderColor:'rgba(120,80,255,.25)',color:'rgba(160,120,255,.7)'}}>{t.appsLabel}</span>
+        <h2 style={{fontWeight:600,fontSize:'clamp(28px,4vw,52px)',letterSpacing:'-.04em',lineHeight:1.08,marginBottom:14,marginTop:14}}>{t.appsTitle}</h2>
+        <p style={{fontFamily:'Cairo',fontSize:'clamp(15px,2.2vw,20px)',color:'rgba(200,180,255,.8)',maxWidth:640,margin:'0 auto 6px',lineHeight:1.7,fontWeight:500,direction:'rtl'}}>{t.appsAr}</p>
+        {l==='en'&&<p style={{color:'rgba(255,255,255,.32)',fontSize:'.85rem',maxWidth:400,margin:'10px auto 0',lineHeight:1.8,fontWeight:300}}>{t.appsDesc}</p>}
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20,maxWidth:700,margin:'0 auto',position:'relative',zIndex:3}}>
+        {APPS.map(p=>(<div key={p.id} className="acard"><div className="acard-top"/><CardBody item={p} feats={p.feats} price={p.price} billing={p.billing} onAdd={onAdd} onBuy={onBuy} t={t} accentBorder="rgba(100,60,255,.14)" accentDot="rgba(160,120,255,.7)" tagBg="rgba(120,80,255,.12)" tagBorder="rgba(120,80,255,.25)" tagColor="rgba(180,140,255,.85)" btnBorder="rgba(120,80,255,.3)" iconBorder="rgba(100,60,255,.3)" iconBg="rgba(60,20,200,.08)"/></div>))}
+      </div>
+    </section>
+  );
 }
 
 /* ══ DISCORD SECTION ══ */
@@ -638,11 +657,37 @@ function GfxHomeCard({g,setPage,isLast}){
   );
 }
 
+function FivemHLSBg(){
+  const vr=useRef(null);
+  useEffect(()=>{
+    const v=vr.current;
+    if(!v)return;
+    let hls;
+    const src='https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8';
+    if(window.Hls&&window.Hls.isSupported()){
+      hls=new window.Hls({lowLatencyMode:false});
+      hls.loadSource(src);
+      hls.attachMedia(v);
+      hls.on(window.Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));
+    } else if(v.canPlayType('application/vnd.apple.mpegurl')){
+      v.src=src;
+      v.play().catch(()=>{});
+    }
+    return()=>{if(hls)hls.destroy();};
+  },[]);
+  return(
+    <div style={{position:'absolute',bottom:'35vh',left:0,right:0,height:'80vh',zIndex:0,overflow:'hidden',pointerEvents:'none'}}>
+      <video ref={vr} muted loop playsInline autoPlay style={{width:'100%',height:'100%',objectFit:'cover',opacity:1}}/>
+      {/* subtle purple tint only, no dark overlay */}
+      <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,#000 0%,rgba(0,0,0,.15) 20%,rgba(60,20,120,.1) 50%,rgba(0,0,0,.2) 80%,#000 100%)'}}/>
+    </div>
+  );
+}
+
 function FivemSection({setPage}){
   return(
-    <section id="fivem" style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(120,60,255,.2)'}}>
-      <div style={{position:'absolute',top:'10%',left:'50%',transform:'translateX(-50%)',width:800,height:400,background:'radial-gradient(ellipse,rgba(120,50,255,.08) 0%,transparent 65%)',pointerEvents:'none',zIndex:0}}/>
-      <div style={{position:'absolute',top:'60%',right:'5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,rgba(160,80,255,.05) 0%,transparent 70%)',pointerEvents:'none',zIndex:0}}/>
+    <section id="fivem" style={{padding:'120px 40px 100px',position:'relative',background:'#000',borderTop:'0.6px solid rgba(120,60,255,.2)',overflow:'hidden'}}>
+      <FivemHLSBg/>
       <Particles count={8} color="rgba(140,70,255,.45)"/>
       <div style={{maxWidth:1080,margin:'0 auto',position:'relative',zIndex:3}}>
         <div style={{textAlign:'center',marginBottom:52}}>
